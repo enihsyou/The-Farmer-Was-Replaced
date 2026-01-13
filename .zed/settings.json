@@ -1,0 +1,25 @@
+// Folder-specific settings
+//
+// For a full list of overridable settings, and general information on folder-specific settings,
+// see the documentation: https://zed.dev/docs/configuring-zed#settings-files
+{
+  "languages": {
+    "Python": {
+      "language_servers": [
+        "ty", // 相比 pyright 能更好地处理 __builtins__.py 文件?
+        "ruff", // 主动列出以支持格式化
+      ],
+    }
+  },
+  "lsp": {
+    "ruff": {
+      "initialization_options": {
+        "settings": {
+          "lint": {
+            "enable": false
+          }
+        }
+      }
+    }
+  },
+}
