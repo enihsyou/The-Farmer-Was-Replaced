@@ -1,4 +1,3 @@
-from __builtins__ import Entities, get_entity_type, get_ground_type
 from library import *
 
 
@@ -25,50 +24,47 @@ def moveable_directions(come_from):
 
 
 def explore_unkown_dfs():
-    visited = set()
+    visited = set() # 访问过的交叉点
 
     def explore_direction(d):
         def f():
-            moveable_dirs = [d]
-            backtraces = [d]
+            moveable_dirs = [d] # 记录可以前进的方向
+            move_history = [] # 移动记录
             while len(moveable_dirs) == 1:
                 dir = moveable_dirs[0]
                 move(dir)
-                backtraces.append(dir)
-                visited.add(current_position())
+                move_history.append(dir)
                 if get_entity_type() == Entities.Treasure:
                     relocate_treasure()
-                    return
+                    return True
                 if get_entity_type() != Entities.Hedge:
-                    return  # 说明程序已经结束
+                    return True # 说明程序已经结束
                 moveable_dirs = moveable_directions(dir)
             for dir in moveable_dirs:
                 adj = adjecent_coordination(current_position(), dir)
                 if adj in visited:
                     continue
+                visited.add(adj)
                 task = explore_direction(dir)
-                if not spawn_drone(task):
-                    task()
+                if task():
+                    return True
 
-            for i in range(len(backtraces) - 1, -1, -1):
-                move(OPPOSITES[backtraces[i]])
-            return
+            for i in range(len(move_history) - 1, -1, -1):
+                move(OPPOSITES[move_history[i]])
 
         return f
 
     if get_entity_type() == Entities.Treasure:
-        return harvest()
+        relocate_treasure()
+        return True
 
     for dir in DIRECTIONS:
         if can_move(dir):
             task = explore_direction(dir)
-            if not spawn_drone(task):
-                task()
+            if task():
+                return True
 
 
 if __name__ == "__main__":
-    # clear()
-    set_world_size(3)
     while True:
         harvest_golds()
-    # while True:

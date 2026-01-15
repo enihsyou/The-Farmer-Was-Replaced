@@ -1,4 +1,3 @@
-from __builtins__ import get_tick_count, quick_print, spawn_drone, wait_for
 
 WORLD_SIZE = get_world_size()
 WORLD_IS_EVEN = WORLD_SIZE % 2 == 0
