@@ -1,4 +1,3 @@
-
 WORLD_SIZE = get_world_size()
 WORLD_IS_EVEN = WORLD_SIZE % 2 == 0
 HALF_WORLD_SIZE = WORLD_SIZE // 2
@@ -467,20 +466,78 @@ def shorest_navigation(blocks, start, target):
 
     return []
 
+
+def shorest_navigation_maze(walls, start, target):
+    # a* search 返回从 start 到 apple 的最短路径的移动指令列表
+    def h(cell):
+        return distance_2d_flat(cell, target)
+
+    came_from = {}
+    g_score = metric_of_inf()
+    set_metric(g_score, start, 0)
+    f_score = metric_of_inf()
+    set_metric(f_score, start, h(start))
+
+    queue_keys = []
+    queue_data = {}
+
+    def enqueue(cell, priority):
+        if priority in queue_keys:
+            queue_data[priority].append(cell)
+        else:
+            queue_keys.append(priority)
+            queue_data[priority] = [cell]
+
+    def dequeue():
+        min_priority = min(queue_keys)
+        min_cells = queue_data[min_priority]
+        if len(min_cells) == 1:
+            queue_keys.remove(min_priority)
+        return min_cells.pop()
+
+    visited = set()
+    visited.add(start)
+    enqueue(start, 0)
+    while queue_keys:
+        current = dequeue()
+        if current == target:
+            return reconstruct_navigation(came_from, target)
+
+        current_score = get_metric(g_score, current)
+        cost_to_adj = current_score + 1
+        for direction in DIRECTIONS:
+            if (current, direction) in walls:
+                continue
+            adj = adjecent_coordination(current, direction)
+            if not is_in_map(adj):
+                continue
+            if adj in visited:
+                continue
+            visited.add(adj)
+            if cost_to_adj < get_metric(g_score, adj):
+                came_from[adj] = current
+                set_metric(g_score, adj, cost_to_adj)
+                set_metric(f_score, adj, cost_to_adj + h(adj))
+                enqueue(adj, get_metric(f_score, adj))
+
+    return []
+
+
 def safe_spawn_drone(task):
     drone = spawn_drone(task)
     if drone == None:
         return task()
     return wait_for(drone)
 
+
 if __name__ == "__main__":
     clear()
     points = [
-        (11,1),
+        (11, 1),
     ]
     for p in points:
         start = (6, 1)
-        block = [(8,1),(7,1),(6,1)]
+        block = [(8, 1), (7, 1), (6, 1)]
         move_2d_flat(start)
         a = get_tick_count()
         path = shorest_navigation(block, start, p)
