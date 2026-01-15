@@ -1,3 +1,4 @@
+from __builtins__ import can_harvest
 from library import *
 
 
@@ -13,7 +14,22 @@ def harvest_carrots(w, h):
     traverse_rectangle(plant_and_harvest, w, h)
 
 
+def poly_carrots():
+    def plant_carrot():
+        if get_ground_type() != Grounds.Soil:
+            till()
+        while True:
+            harvest()
+            plant(Entities.Carrot)
+            companion, pos = get_companion()  # type: ignore
+            if companion == Entities.Grass:
+                break
+        while get_water() < 0.75 and num_items(Items.Water) > 0:
+            use_item(Items.Water)
+
+    traverse_rectangle(plant_carrot, 2, 4)
+
 if __name__ == "__main__":
-    move_2d_torus(zeroing_position)
+    clear()
     while True:
-        harvest_carrots(WORLD_SIZE, WORLD_SIZE)
+        poly_carrots()

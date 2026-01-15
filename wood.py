@@ -1,4 +1,3 @@
-from __builtins__ import get_ground_type, get_water, can_harvest, get_entity_type, use_item
 from library import *
 
 
@@ -48,5 +47,6 @@ def poly_woods():
 
 
 if __name__ == "__main__":
+    clear()
     while True:
         poly_woods()

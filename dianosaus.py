@@ -60,7 +60,7 @@ def harvest_dianosaus_pathfinding():
                 snake.pop(0)
     change_hat(Hats.Brown_Hat)
 
-print(__name__)
 if __name__ == "__main__":
+    clear()
     while True:
         harvest_dianosaus()
