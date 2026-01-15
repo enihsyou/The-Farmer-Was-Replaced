@@ -1,4 +1,4 @@
-from __builtins__ import get_tick_count, quick_print
+from __builtins__ import get_tick_count, quick_print, spawn_drone, wait_for
 
 WORLD_SIZE = get_world_size()
 WORLD_IS_EVEN = WORLD_SIZE % 2 == 0
@@ -468,6 +468,11 @@ def shorest_navigation(blocks, start, target):
 
     return []
 
+def safe_spawn_drone(task):
+    drone = spawn_drone(task)
+    if drone == None:
+        return task()
+    return wait_for(drone)
 
 if __name__ == "__main__":
     clear()
