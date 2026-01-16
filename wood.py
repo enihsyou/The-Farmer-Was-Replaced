@@ -1,3 +1,4 @@
+from __builtins__ import Entities, can_harvest, get_world_size, use_item, set_execution_speed
 from library import *
 
 
@@ -42,11 +43,41 @@ def poly_woods():
         #         companion, pos = get_companion()
         #         if is_tree_position(pos) and companion == Entities.Tree:
         #             break
+
     move_2d_torus(zeroing_position)
     traverse_rectangle(plant_tree, 3, 3)
 
 
+def ploy_multidrone_woods():
+    def plant_tree():
+        if get_ground_type() != Grounds.Soil:
+            till()
+        while True:
+            while True:
+                harvest()
+                plant(Entities.Tree)
+                companion, pos = get_companion()  # type: ignore
+                x, y = pos
+                if companion == Entities.Grass:
+                    if y > 0 or not is_tree_position(pos):
+                        break
+            while get_water() < 0.75 and num_items(Items.Water) > 0:
+                use_item(Items.Water)
+            use_time = 0
+            while not can_harvest():
+                use_item(Items.Fertilizer)
+                use_time = 1
+            if use_time % 2 == 1:
+                use_item(Items.Weird_Substance)
+
+    def spawn_task():
+        if is_tree_position(current_position()):
+            spawn_drone(plant_tree)
+
+    move_2d_torus(zeroing_position)
+    traverse_rectangle(spawn_task, get_world_size(), 1)
+
+
 if __name__ == "__main__":
     clear()
-    while True:
-        poly_woods()
+    ploy_multidrone_woods()

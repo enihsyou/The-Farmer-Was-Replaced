@@ -1,3 +1,5 @@
+from __builtins__ import wait_for, North
+
 WORLD_SIZE = get_world_size()
 WORLD_IS_EVEN = WORLD_SIZE % 2 == 0
 HALF_WORLD_SIZE = WORLD_SIZE // 2
@@ -525,9 +527,38 @@ def shorest_navigation_maze(walls, start, target):
 
 def safe_spawn_drone(task):
     drone = spawn_drone(task)
-    if drone == None:
-        return task()
-    return wait_for(drone)
+    if not drone:
+        task()
+    return drone
+
+
+def wait_drones(drones):
+    for drone in drones:
+        wait_for(drone)
+
+
+def spawn_drone_foreach_col(task_creator):
+    drones = []
+    move_2d_torus(zeroing_position)
+    for i in range(get_world_size()):
+        drone = safe_spawn_drone(task_creator(i))
+        if drone:
+            drones.append(drone)
+        if i != get_world_size() - 1:
+            move(East)
+    wait_drones(drones)
+
+def spawn_drone_foreach_row(task_creator):
+    drones = []
+    move_2d_torus(zeroing_position)
+    for i in range(get_world_size()):
+        drone = safe_spawn_drone(task_creator(i))
+        if drone:
+            drones.append(drone)
+        if i != get_world_size() - 1:
+            move(North)
+    wait_drones(drones)
+
 
 
 if __name__ == "__main__":

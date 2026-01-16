@@ -1,4 +1,4 @@
-from __builtins__ import set_world_size
+from __builtins__ import max_drones, measure, num_drones, set_world_size, spawn_drone
 from library import *
 
 
@@ -6,13 +6,36 @@ def harvest_golds():
     relocate_treasure()
     walls = set()
     explore_unkown_dfs(walls)
+
     while True:
         if get_entity_type() == Entities.Treasure:
             relocate_treasure()
+            if num_drones() < max_drones():
+                single_drone(walls)
         if explore_known_astar(walls):
             continue
         if explore_unkown_dfs(walls):
             continue
+
+def single_drone(walls):
+    treasure = measure()  # 下一轮再启动
+
+    def new_drone():
+        while measure() == treasure:
+            pass
+        while True:
+            if get_entity_type() == Entities.Treasure:
+                relocate_treasure()
+                if num_drones() < max_drones():
+                    single_drone(walls)
+            if random() < 0.2:
+                return # 有几率退出，取得新的 walls 变量
+            if explore_known_astar(walls):
+                continue
+            if explore_unkown_dfs(walls):
+                continue
+
+    spawn_drone(new_drone)
 
 
 def relocate_treasure():
@@ -45,6 +68,7 @@ def update_walls(walls):
 
 def explore_unkown_dfs(walls):
     visited = set()  # 访问过的交叉点
+    treasure = measure()
 
     def explore_direction(d):
         def f():
@@ -69,6 +93,9 @@ def explore_unkown_dfs(walls):
                 if task():
                     return True
 
+            if measure() != treasure:
+                return False
+
             for i in range(len(move_history) - 1, -1, -1):
                 move(OPPOSITES[move_history[i]])
 
@@ -90,14 +117,20 @@ def explore_known_astar(walls):
     current = current_position()
     path = shorest_navigation_maze(walls, current, treasure)
     if path:
+        c = 0
         for dir in path:
             if not move(dir):
                 return False
+            if measure() != treasure:
+                return False
             update_walls(walls)
+            c += 1
+            if c % 100 == 99:
+                single_drone(walls)
         return True
     return False
 
 
 if __name__ == "__main__":
-    set_world_size(0)
+    set_world_size(12)
     harvest_golds()

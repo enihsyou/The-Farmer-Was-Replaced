@@ -1,3 +1,4 @@
+from __builtins__ import get_world_size, wait_for, East
 from library import *
 
 
@@ -51,7 +52,7 @@ def harvest_pumpkins(size):
     move_2d_torus(starting_position)
 
 
-if __name__ == "__main__":
+def multidrone_pumpkins():
     move_2d_torus(zeroing_position)
 
     def drone_behavior(starting_position, size):
@@ -67,8 +68,52 @@ if __name__ == "__main__":
             return
         task()
 
-    clear()
-    safe_spawn_drone(drone_behavior((0, 0), 6))
-    safe_spawn_drone(drone_behavior((0, 7), 6))
-    safe_spawn_drone(drone_behavior((7, 0), 6))
-    safe_spawn_drone(drone_behavior((7, 7), 6))
+    for i in range(0, WORLD_SIZE, 7):
+        for j in range(0, WORLD_SIZE, 7):
+            if i + 6 < WORLD_SIZE and j + 6 < WORLD_SIZE:
+                safe_spawn_drone(drone_behavior((i, j), 6))
+
+
+def world_size_pumpkins():
+    move_2d_torus(zeroing_position)
+
+    def plant_column():
+        for i in range(get_world_size()):
+            plant_pumpkin()
+            if i != get_world_size() - 1:
+                move(North)
+        unripes = []
+
+        def check_pumpkin():
+            if is_ripe_pumpkin():
+                return
+            if is_dead_pumpkin():
+                plant(Entities.Pumpkin)
+            unripes.append(current_position())
+
+        for i in range(get_world_size()):
+            check_pumpkin()
+            if i != get_world_size() - 1:
+                move(North)
+
+        while unripes:
+            unripes = replant_dead_pumpkins(unripes)
+
+    def spawn_plant_bush():
+        drones = []
+        for i in range(get_world_size()):
+            drone = spawn_drone(plant_column)
+            if drone != None:
+                drones.append(drone)
+            else:
+                plant_column()
+            if i != get_world_size() - 1:
+                move(East)
+        for drone in drones:
+            wait_for(drone)
+
+    spawn_plant_bush()
+    harvest()
+
+if __name__ == "__main__":
+    world_size_pumpkins()
