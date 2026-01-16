@@ -1,20 +1,55 @@
-from __builtins__ import North, get_pos_x, num_items, quick_print
-
-
 def harvest_dianosaus():
-    # https://www.reddit.com/r/TheFarmerWasReplaced/comments/1o90hxs/my_sna_i_mean_dinosaur_algorithm/
     change_hat(Hats.Dinosaur_Hat)
-    cycle_loop()
+    snake = 0
+    snake = quick_loop()
+    cycle_loop(snake)
     change_hat(Hats.Brown_Hat)
 
 
-def cycle_loop():
+def quick_loop():
+    # 直接走向目标，可能卡死
+    s = get_world_size()
+    l = s * 3 // 2 # 大于这个长度就换算法
+
+    snake = 0
+    while True:
+        if get_entity_type() == Entities.Apple:
+            snake += 1
+            if snake > l:
+                break # make sure stop at the apple location
+            wx, wy = measure()  # type: ignore
+        while get_pos_x() < wx and move(East):
+            pass
+        while get_pos_x() > wx and move(West):
+            pass
+        while get_pos_y() < wy and move(North):
+            pass
+        while get_pos_y() > wy and move(South):
+            pass
+        if get_entity_type() != Entities.Apple:
+            if move(North):
+                continue
+            if move(South):
+                continue
+            if move(East):
+                continue
+            if move(West):
+                continue
+            # stuck, bad luck, let's restart
+            change_hat(Hats.Dinosaur_Hat)
+            snake = 0
+    return snake
+
+
+def cycle_loop(snake):
+    # 参照这个地址来实现
+    # https://www.reddit.com/r/TheFarmerWasReplaced/comments/1o90hxs/my_sna_i_mean_dinosaur_algorithm/
+    # 最后一个苹果生成在四边时有几率头尾卡在最后一步
     s = get_world_size()
     m = s - 1
-    l = s * s // 2
+    l = s * s // 2  # 大于这个长度就强制走汉密顿路径
 
     dir = East
-    snake = 0
     while True:
         x, y = get_pos_x(), get_pos_y()
         if get_entity_type() == Entities.Apple:
@@ -85,7 +120,7 @@ def cycle_loop():
 
 
 if __name__ == "__main__":
-    set_world_size(8)
+    # set_world_size(24)
     b = num_items(Items.Bone)
     harvest_dianosaus()
     a = num_items(Items.Bone)

@@ -17,5 +17,5 @@ def run_leaderboard():
 
 
 if __name__ == "__main__":
-    run_simulate()
-    # run_leaderboard()
+    # run_simulate()
+    run_leaderboard()
