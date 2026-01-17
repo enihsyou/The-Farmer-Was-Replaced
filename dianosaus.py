@@ -3,54 +3,11 @@ from __builtins__ import Entities, South, get_entity_type, get_pos_x, get_pos_y
 
 def harvest_dianosaus():
     change_hat(Hats.Dinosaur_Hat)
-    snake = 0
-    snake = quick_loop()
-    cycle_loop(snake)
+    cycle_loop()
     change_hat(Hats.Brown_Hat)
 
 
-def quick_loop():
-    # 直接走向目标，可能形成圈卡死
-    s = get_world_size()
-    l = s * 3 // 2  # 大于这个长度就换算法
-
-    snake = 0
-    while True:
-        if get_entity_type() == Entities.Apple:
-            snake += 1
-            if snake > l:
-                break  # make sure stop at the apple location
-            wx, wy = measure()  # type: ignore
-        while get_pos_x() < wx and move(East):
-            continue  # 来替代 200 tick 的 pass 语句
-        while get_pos_x() > wx and move(West):
-            continue
-        while get_pos_y() < wy and move(North):
-            continue
-        while get_pos_y() > wy and move(South):
-            continue
-
-        if get_entity_type() != Entities.Apple:
-            x, y = get_pos_x(), get_pos_y()
-            # 移动不到下一个苹果去，可能是新苹果生成在身后, 朝能走的方向前进，试试运气
-            if x == wx and y != wy:
-                if move(East):
-                    continue
-                if move(West):
-                    continue
-            if x != wx and y == wy:
-                if move(North):
-                    continue
-                if move(South):
-                    continue
-
-            # stuck, bad luck, let's restart
-            change_hat(Hats.Dinosaur_Hat)
-            snake = 0
-    return snake
-
-
-def cycle_loop(snake):
+def cycle_loop():
     # 参照这个地址来实现
     # https://www.reddit.com/r/TheFarmerWasReplaced/comments/1o90hxs/my_sna_i_mean_dinosaur_algorithm/
     # 最后一个苹果生成在四边时有几率头尾卡在最后一步
@@ -59,6 +16,7 @@ def cycle_loop(snake):
     l = s * s // 2  # 大于这个长度就强制走汉密顿路径
 
     dir = East
+    snake = 0
     while True:
         x, y = get_pos_x(), get_pos_y()
         if get_entity_type() == Entities.Apple:
@@ -135,8 +93,8 @@ def cycle_loop(snake):
 
 if __name__ == "__main__":
     # set_world_size(8)
-    b = num_items(Items.Bone)
+    # b = num_items(Items.Bone)
     harvest_dianosaus()
-    a = num_items(Items.Bone)
-    h = a - b
-    quick_print("Harvest Bones", h, "is Done?", h >= 33488928)
+    # a = num_items(Items.Bone)
+    # h = a - b
+    # quick_print("Harvest Bones", h, "is Done?", h >= 33488928)
