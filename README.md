@@ -10,12 +10,13 @@ Version: 1.0
 | Category       | Best Time   | Global Rank | Date       |
 |----------------|------------:|------------:|------------|
 | Hay            |           - |           - |          - |
+| Hay Single     |    3:36.100 |          78 | 2026-01-17 |
 | Wood           |           - |           - |          - |
 | Carrots        |           - |           - |          - |
 | Pumpkins       |           - |           - |          - |
 | Cactus         |           - |           - |          - |
 | Sunflowers     |           - |           - |          - |
-| Dinosaur       |   13:30:422 |          18 | 2026-01-17 |
+| Dinosaur       |   13:13.941 |          16 | 2026-01-17 |
 | Maze           |           - |           - |          - |
 | Polyculture    |           - |           - |          - |
 | Fastest Reset  |           - |           - |          - |
