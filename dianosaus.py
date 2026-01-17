@@ -7,7 +7,6 @@ def harvest_dianosaus():
 def cycle_loop():
     # 参照这个地址来实现
     # https://www.reddit.com/r/TheFarmerWasReplaced/comments/1o90hxs/my_sna_i_mean_dinosaur_algorithm/
-    # 最后一个苹果生成在四边时有几率头尾卡在最后一步
     s = get_world_size()
     m = s - 1
     l = s * s // 2  # 大于这个长度就强制走汉密顿路径
@@ -24,6 +23,7 @@ def cycle_loop():
         if snake > l:
             if can_move(North) and y == 0 and x % 2 == 1:
                 for _ in range(m - 1):  # 避开最北的一行
+                    # 如果不幸在这里吃到果子，会卡死，但是省略判断能提速 10%
                     move(North)
                 continue
 
@@ -55,6 +55,7 @@ def cycle_loop():
             if y != m and can_move(North):
                 while move(North) and get_entity_type() != Entities.Apple:
                     continue  # 回归边线
+                continue
             if x == 0:
                 dir = South  # 在边界转向
             if not (move(dir) or move(South)):  # 碰到边界或尾巴，向有空间的方向前进
@@ -69,7 +70,6 @@ def cycle_loop():
                     continue  # 边界上走直线，避免循环顶层大 while
                 if not (can_move(dir) or can_move(East)):
                     break  # 碰到尾巴
-                continue
             dir = East  # 在边界转向
             continue
         if dir == North:
@@ -81,7 +81,6 @@ def cycle_loop():
                     continue  # 边界上走直线，避免循环顶层大 while
                 if not can_move(dir) and not can_move(West):
                     break  # 碰到尾巴
-                continue
             dir = West  # 在边界转向
             continue
 

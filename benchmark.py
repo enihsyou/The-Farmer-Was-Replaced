@@ -22,8 +22,7 @@ def idle():
 
 
 def bench_target():
-    change_hat(Hats.Dinosaur_Hat)
-    while move(North):
+    for i in range(10):
         continue
 
 
