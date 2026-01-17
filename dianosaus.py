@@ -1,6 +1,3 @@
-from __builtins__ import Entities, South, get_entity_type, get_pos_x, get_pos_y
-
-
 def harvest_dianosaus():
     change_hat(Hats.Dinosaur_Hat)
     cycle_loop()
@@ -50,10 +47,9 @@ def cycle_loop():
                     continue  # 回归边线
                 continue
             if x == m:
-                dir = North  # 在边界转向
-            if not move(dir):  # 碰到边界或尾巴，向有空间的方向前进
-                if not move(North):
-                    break
+                dir = North  # 在边界转向, 下面直接 move 节约一个循环
+            if not (move(dir) or move(North)):  # 碰到边界或尾巴，向有空间的方向前进
+                break
             continue
         if dir == West:
             if y != m and can_move(North):
@@ -61,9 +57,8 @@ def cycle_loop():
                     continue  # 回归边线
             if x == 0:
                 dir = South  # 在边界转向
-            if not move(dir):  # 碰到边界或尾巴，向有空间的方向前进
-                if not move(South):
-                    break
+            if not (move(dir) or move(South)):  # 碰到边界或尾巴，向有空间的方向前进
+                break
             continue
         if dir == South:
             if x != 0 and can_move(West):
