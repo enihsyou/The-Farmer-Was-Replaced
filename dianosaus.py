@@ -1,3 +1,6 @@
+from __builtins__ import Entities, South, get_entity_type, get_pos_x, get_pos_y
+
+
 def harvest_dianosaus():
     change_hat(Hats.Dinosaur_Hat)
     snake = 0
@@ -7,34 +10,40 @@ def harvest_dianosaus():
 
 
 def quick_loop():
-    # 直接走向目标，可能卡死
+    # 直接走向目标，可能形成圈卡死
     s = get_world_size()
-    l = s * 3 // 2 # 大于这个长度就换算法
+    l = s * 3 // 2  # 大于这个长度就换算法
 
     snake = 0
     while True:
         if get_entity_type() == Entities.Apple:
             snake += 1
             if snake > l:
-                break # make sure stop at the apple location
+                break  # make sure stop at the apple location
             wx, wy = measure()  # type: ignore
         while get_pos_x() < wx and move(East):
-            pass
+            continue  # 来替代 200 tick 的 pass 语句
         while get_pos_x() > wx and move(West):
-            pass
+            continue
         while get_pos_y() < wy and move(North):
-            pass
+            continue
         while get_pos_y() > wy and move(South):
-            pass
+            continue
+
         if get_entity_type() != Entities.Apple:
-            if move(North):
-                continue
-            if move(South):
-                continue
-            if move(East):
-                continue
-            if move(West):
-                continue
+            x, y = get_pos_x(), get_pos_y()
+            # 移动不到下一个苹果去，可能是新苹果生成在身后, 朝能走的方向前进，试试运气
+            if x == wx and y != wy:
+                if move(East):
+                    continue
+                if move(West):
+                    continue
+            if x != wx and y == wy:
+                if move(North):
+                    continue
+                if move(South):
+                    continue
+
             # stuck, bad luck, let's restart
             change_hat(Hats.Dinosaur_Hat)
             snake = 0
@@ -79,7 +88,8 @@ def cycle_loop(snake):
         # 围着操场逆时针转圈
         if dir == East:
             if y != 0 and can_move(South):
-                move(South)  # 回归边线
+                while move(South) and get_entity_type() != Entities.Apple:
+                    continue  # 回归边线
                 continue
             if x == m:
                 dir = North  # 在边界转向
@@ -89,8 +99,8 @@ def cycle_loop(snake):
             continue
         if dir == West:
             if y != m and can_move(North):
-                move(North)  # 回归边线
-                continue
+                while move(North) and get_entity_type() != Entities.Apple:
+                    continue  # 回归边线
             if x == 0:
                 dir = South  # 在边界转向
             if not move(dir):  # 碰到边界或尾巴，向有空间的方向前进
@@ -103,7 +113,9 @@ def cycle_loop(snake):
                 continue
             if x == 0 and y != 0:
                 while move(dir) and get_entity_type() != Entities.Apple:
-                    pass  # 边界上走直线，避免循环顶层大 while
+                    continue  # 边界上走直线，避免循环顶层大 while
+                if not (can_move(dir) or can_move(East)):
+                    break  # 碰到尾巴
                 continue
             dir = East  # 在边界转向
             continue
@@ -113,14 +125,16 @@ def cycle_loop(snake):
                 continue
             if x == m and y != m:
                 while move(dir) and get_entity_type() != Entities.Apple:
-                    pass  # 边界上走直线，避免循环顶层大 while
+                    continue  # 边界上走直线，避免循环顶层大 while
+                if not can_move(dir) and not can_move(West):
+                    break  # 碰到尾巴
                 continue
             dir = West  # 在边界转向
             continue
 
 
 if __name__ == "__main__":
-    # set_world_size(24)
+    # set_world_size(8)
     b = num_items(Items.Bone)
     harvest_dianosaus()
     a = num_items(Items.Bone)

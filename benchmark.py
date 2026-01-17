@@ -4,6 +4,8 @@
 # - string 做键时长度应控制在 16 以下
 # - 超过 2 个元素的 tuple 可以尝试转成 string 再做键
 # - tuple unpack 比 index 更快
+# - while 循环用 continue 比 pass 做循环体更快
+from __builtins__ import change_hat, Hats, South
 from library import *
 
 
@@ -20,10 +22,9 @@ def idle():
 
 
 def bench_target():
-    move_2d_torus(zeroing_position)
     change_hat(Hats.Dinosaur_Hat)
-    move_2d_flat((0, 11))
-    move_2d_flat((11, 11))
+    while move(North):
+        continue
 
 
 
