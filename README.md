@@ -15,7 +15,7 @@ Version: 1.0
 | Pumpkins       |           - |           - |          - |
 | Cactus         |           - |           - |          - |
 | Sunflowers     |           - |           - |          - |
-| Dinosaur       |   13:34:256 |          18 | 2026-01-17 |
+| Dinosaur       |   13:30:422 |          18 | 2026-01-17 |
 | Maze           |           - |           - |          - |
 | Polyculture    |           - |           - |          - |
 | Fastest Reset  |           - |           - |          - |

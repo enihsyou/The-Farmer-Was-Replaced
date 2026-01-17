@@ -21,7 +21,7 @@ def cycle_loop():
 
         # 不留缝隙地占满空间，强迫果子生成在前方，提速 10%
         if snake > l:
-            if can_move(North) and y == 0 and x % 2 == 1:
+            if y == 0 and can_move(North) and x % 2 == 1:
                 for _ in range(m - 1):  # 避开最北的一行
                     # 如果不幸在这里吃到果子，会卡死，但是省略判断能提速 10%
                     move(North)
@@ -52,6 +52,9 @@ def cycle_loop():
                 break
             continue
         if dir == West:
+            if y == m and can_move(dir) and x > wx + 1:
+                for _ in range(x - wx - 1 - 1):  # 考虑到奇偶性，多减 1
+                    move(dir)  # 快速移过最北边, 因为那是回程的线
             if y != m and can_move(North):
                 while move(North) and get_entity_type() != Entities.Apple:
                     continue  # 回归边线
