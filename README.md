@@ -10,7 +10,7 @@ Version: 1.0
 | Category       | Best Time   | Global Rank | Date       |
 |----------------|------------:|------------:|------------|
 | Hay            |           - |           - |          - |
-| Hay Single     |    3:36.100 |          78 | 2026-01-17 |
+| Hay Single     |    2:55.662 |          36 | 2026-01-17 |
 | Wood           |           - |           - |          - |
 | Carrots        |           - |           - |          - |
 | Pumpkins       |           - |           - |          - |

@@ -7,4 +7,4 @@ def run_leaderboard_hay_single():
 
 
 if __name__ == "__main__":
-    run_leaderboard_dianosaus()
+    run_leaderboard_hay_single()

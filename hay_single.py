@@ -1,31 +1,92 @@
+from __builtins__ import can_harvest, harvest, North, East, West, South, get_companion, Entities
+
 s = get_world_size()
 m = s - 1
+bush_companions = set()
 
-dirs = [North, East, South, West]
+for _ in range(m):
+    plant(Entities.Bush)
+    move(North)
+    bush_companions.add((Entities.Bush, (get_pos_x(), get_pos_y())))
 
-# 总共需要走的段数是 2m + 1
-# 例如 m=1时，走 N, E, S (3段)
-for i in range(2 * m + 1):
-    # 核心魔法：构造步长序列 m, m, m, m-1, m-1...
-    # 当 i=0,1,2 时，reduction 为 0；当 i=3,4 时，为 1...
-    reduction = max(0, i - 1) // 2
-    current_len = m - reduction
+for _ in range(m - 0):
+    plant(Entities.Bush)
+    move(East)
+    bush_companions.add((Entities.Bush, (get_pos_x(), get_pos_y())))
 
-    # 获取当前方向
-    current_dir = dirs[i % 4]
+for _ in range(m - 0):
+    plant(Entities.Bush)
+    move(South)
+    bush_companions.add((Entities.Bush, (get_pos_x(), get_pos_y())))
 
-    for _ in range(current_len):
-        plant(Entities.Bush)
-        move(current_dir)
+for _ in range(m - 1):
+    plant(Entities.Bush)
+    move(West)
+    bush_companions.add((Entities.Bush, (get_pos_x(), get_pos_y())))
+
+for _ in range(m - 1):
+    plant(Entities.Bush)
+    move(North)
+    bush_companions.add((Entities.Bush, (get_pos_x(), get_pos_y())))
+
+for _ in range(m - 2):
+    plant(Entities.Bush)
+    move(East)
+    bush_companions.add((Entities.Bush, (get_pos_x(), get_pos_y())))
+
+for _ in range(m - 2):
+    plant(Entities.Bush)
+    move(South)
+    bush_companions.add((Entities.Bush, (get_pos_x(), get_pos_y())))
+
+for _ in range(m - 3):
+    plant(Entities.Bush)
+    move(West)
+    bush_companions.add((Entities.Bush, (get_pos_x(), get_pos_y())))
+
+for _ in range(m - 3):
+    plant(Entities.Bush)
+    move(North)
+    bush_companions.add((Entities.Bush, (get_pos_x(), get_pos_y())))
+
+for _ in range(m - 4):
+    plant(Entities.Bush)
+    move(East)
+    bush_companions.add((Entities.Bush, (get_pos_x(), get_pos_y())))
+
+for _ in range(m - 4):
+    plant(Entities.Bush)
+    move(South)
+    bush_companions.add((Entities.Bush, (get_pos_x(), get_pos_y())))
+
+for _ in range(m - 5):
+    plant(Entities.Bush)
+    move(West)
+    bush_companions.add((Entities.Bush, (get_pos_x(), get_pos_y())))
+
+for _ in range(m - 5):
+    plant(Entities.Bush)
+    move(North)
+    bush_companions.add((Entities.Bush, (get_pos_x(), get_pos_y())))
+
+for _ in range(m - 6):
+    plant(Entities.Bush)
+    move(East)
+    bush_companions.add((Entities.Bush, (get_pos_x(), get_pos_y())))
 
 while num_items(Items.Hay) < 100000000:
-    while True:
-        companion, _ = get_companion()  # type: ignore
-        if companion == Entities.Bush:
-            break
+    if can_harvest():
         harvest()
-    while not can_harvest():
-        continue
-    while get_water() < 0.90:
-        use_item(Items.Water)
-    harvest()
+        while get_companion() not in bush_companions:
+            harvest()
+        if get_water() < 0.85:
+            use_item(Items.Water)
+    move(South)
+
+    if can_harvest():
+        harvest()
+        while get_companion() not in bush_companions:
+            harvest()
+        if get_water() < 0.85:
+            use_item(Items.Water)
+    move(North)
