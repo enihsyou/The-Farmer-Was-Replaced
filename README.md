@@ -5,12 +5,12 @@ This directory contains save data for my progress for the game "The Farmer Was R
 
 ## Leaderboard
 
-Version: 1.0
+Game version: 1.0
 
 | Category       | Best Time   | Global Rank | Date       |
 |----------------|------------:|------------:|------------|
 | Hay            |           - |           - |          - |
-| Hay Single     |    2:53.784 |          31 | 2026-01-17 |
+| Hay Single     |    2:52.357 |          31 | 2026-01-17 |
 | Wood           |           - |           - |          - |
 | Carrots        |           - |           - |          - |
 | Pumpkins       |           - |           - |          - |
