@@ -13,7 +13,7 @@ Game version: 1.0
 | Hay Single     |    2:51.483 |          26 | 2026-01-18 |
 | Wood           |           - |           - |          - |
 | Carrots        |           - |           - |          - |
-| Carrots Single |    6:29.643 |          30 | 2026-01-18 |
+| Carrots Single |    6:21.613 |          28 | 2026-01-18 |
 | Pumpkins       |           - |           - |          - |
 | Cactus         |           - |           - |          - |
 | Sunflowers     |           - |           - |          - |
