@@ -1,44 +1,28 @@
 # 周围三格种上草丛
-for _ in range(3):
-    move(North)
-    plant(Entities.Bush)
-move(North)
-for _ in range(3):
-    move(North)
-    plant(Entities.Bush)
-
-move(East)
-
-for _ in range(3):
-    plant(Entities.Bush)
-    move(South)
-move(South)
-for _ in range(3):
-    plant(Entities.Bush)
-    move(South)
-
-move(North)
-move(North)
-move(East)
+set_world_size(6)
 for _ in range(5):
+    move(North)
     plant(Entities.Bush)
+move(East)
+plant(Entities.Bush)
+for _ in range(4):
     move(South)
+    plant(Entities.Bush)
 
 move(East)
 move(North)
+
+for _ in range(4):
+    plant(Entities.Bush)
+    move(South)
+
+plant(Entities.Bush)
+move(East)
 for _ in range(3):
     move(North)
     plant(Entities.Bush)
 
 move(East)
-move(South)
-plant(Entities.Bush)
-
-move(East)
-plant(Entities.Bush)
-
-move(East)
-move(North)
 for _ in range(3):
     plant(Entities.Bush)
     move(South)
