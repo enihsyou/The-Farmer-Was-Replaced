@@ -38,7 +38,7 @@ move(South)
 move(South)
 
 while True:
-    while get_water() < 0.8:
+    while get_water() < 0.75:
         use_item(Items.Water)
     harvest() # move 消耗的时间基本抵消了成长时间，无需 can_harvest()
     if num_items(Items.Hay) > 100000000:
@@ -49,7 +49,7 @@ while True:
         c, (x, y) = get_companion()  # type: ignore
     move(East)
 
-    while get_water() < 0.8:
+    while get_water() < 0.75:
         use_item(Items.Water)
     harvest()
     if num_items(Items.Hay) > 100000000:
