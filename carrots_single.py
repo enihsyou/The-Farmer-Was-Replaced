@@ -1,34 +1,45 @@
-set_world_size(8)
+# set_world_size(8)
+
 s = get_world_size()
-wants = {}  # 记录种植需求
+m = s - 1
+n = s - 2
 
-
-def pos_index(x, y):
-    return x * s + y
-
-
-def eachcell(fn):
-    for i in range(s):
-        for j in range(s):
-            if get_ground_type() != Grounds.Soil:
-                till()
-            fn()
-            move(North)
-        move(East)
-    while True:
-        for i in range(s):
-            for j in range(s):
-                fn()
-                if num_items(Items.Carrot) > 100000000:
-                    return
+def traverse_rectangle(fn):
+    # traverse_rectangle 针对 8 x 8 的性能优化版
+    if fn():
+        return False
+    move(North)
+    for i in range(0, s, 2):
+        for j in range(m):
+            if fn():
+                return False
+            if j != n:
                 move(North)
+        move(East)
+        for j in range(m):
+            if fn():
+                return False
+            if j != n:
+                move(South)
+        if i != n:
             move(East)
+    move(South)
+    for _ in range(m):
+        if fn():
+            return False
+        move(West)
+
+    return True  # loop continues
+
+
+wants = {}  # 记录种植需求
 
 
 def on_eachcell():
     t = (get_pos_x(), get_pos_y())
 
-    while get_water() < 0.8:
+    if get_water() < 0.01:
+        # 访问间隔挺长的，不需要太多水
         use_item(Items.Water)
 
     if t in wants:
@@ -49,4 +60,17 @@ def on_eachcell():
         break
 
 
-eachcell(on_eachcell)
+def first_round():
+    if get_ground_type() != Grounds.Soil:
+        till()
+    on_eachcell()
+
+
+def while_round():
+    on_eachcell()
+    return num_items(Items.Carrot) >= 100000000
+
+
+traverse_rectangle(first_round)
+while traverse_rectangle(while_round):
+    continue
