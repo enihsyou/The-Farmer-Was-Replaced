@@ -1,4 +1,4 @@
-from __builtins__ import wait_for, North
+from __builtins__ import North, wait_for, get_world_size
 
 WORLD_SIZE = get_world_size()
 WORLD_IS_EVEN = WORLD_SIZE % 2 == 0
@@ -134,6 +134,29 @@ def move_2d_torus(position):
     tx, ty = position
     move_1d_torus(cx, tx, East)
     move_1d_torus(cy, ty, North)
+
+
+def move_to(tx, ty):
+    s = get_world_size()
+    cx, cy = get_pos_x(), get_pos_y()
+
+    a = (tx - cx) % s
+    b = (cx - tx) % s
+    if a > b:
+        for _ in range(b):
+            move(West)
+    elif b > a:
+        for _ in range(a):
+            move(East)
+
+    a = (ty - cy) % s
+    b = (cy - ty) % s
+    if a > b:
+        for _ in range(b):
+            move(South)
+    elif b > a:
+        for _ in range(a):
+            move(North)
 
 
 def move_2d_random_neighbor(boundary):
@@ -548,6 +571,7 @@ def spawn_drone_foreach_col(task_creator):
             move(East)
     wait_drones(drones)
 
+
 def spawn_drone_foreach_row(task_creator):
     drones = []
     move_2d_torus(zeroing_position)
@@ -558,7 +582,6 @@ def spawn_drone_foreach_row(task_creator):
         if i != get_world_size() - 1:
             move(North)
     wait_drones(drones)
-
 
 
 if __name__ == "__main__":

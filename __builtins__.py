@@ -904,7 +904,7 @@ def clear() -> None:
 
 
 # -------------------------------------------------------------------------------
-def get_companion() -> Tuple[Entity, Tuple[int, int]] | None:
+def get_companion() -> Tuple[Entity, Tuple[int, int]]:
     """
     Get the companion preference of the plant under the drone.
 
