@@ -14,5 +14,9 @@ def run_leaderboard_carrots_single():
     leaderboard_run(Leaderboards.Carrots_Single, "carrots_single", 40960)
 
 
+def run_leaderboard_pumpkins_single():
+    leaderboard_run(Leaderboards.Pumpkins_Single, "pumpkins_single", 40960)
+
+
 if __name__ == "__main__":
-    run_leaderboard_wood_single()
+    run_leaderboard_pumpkins_single()
