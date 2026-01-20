@@ -33,6 +33,34 @@ def traverse_rectangle(fn):
     return True  # loop continues
 
 
+def traverse_rectangle2(fn):
+    cells = set()
+    if fn():
+        cells.add((get_pos_x(), get_pos_y()))
+    move(North)
+    for i in range(0, s, 2):
+        for j in range(m):
+            if fn():
+                cells.add((get_pos_x(), get_pos_y()))
+            if j != n:
+                move(North)
+        move(East)
+        for j in range(m):
+            if fn():
+                cells.add((get_pos_x(), get_pos_y()))
+            if j != n:
+                move(South)
+        if i != n:
+            move(East)
+    move(South)
+    for _ in range(m):
+        if fn():
+            cells.add((get_pos_x(), get_pos_y()))
+        move(West)
+
+    return cells  # loop continues
+
+
 def move_to(pos):
     cx, cy = get_pos_x(), get_pos_y()
     tx, ty = pos
@@ -56,77 +84,54 @@ def move_to(pos):
             move(North)
 
 
+def plant_pumpkin_first():
+    till()
+    plant_pumpkin()
+
+
 def plant_pumpkin():
-    if get_entity_type() != Entities.Pumpkin:
-        harvest()  # 有就收获，清空土地
-    if get_ground_type() != Grounds.Soil:
-        till()
-    if get_entity_type() != Entities.Pumpkin:
-        plant(Entities.Pumpkin)
-    if get_water() < 0.75 and num_items(Items.Water) > 100:
+    plant(Entities.Pumpkin)
+    if get_water() < 0.75:
         use_item(Items.Water)
 
 
-def is_ripe_pumpkin():
-    return get_entity_type() == Entities.Pumpkin and can_harvest()
-
-
-def is_dead_pumpkin():
-    return get_entity_type() == Entities.Dead_Pumpkin
-
-
-def distance_2d(a, b):
-    ax, ay = a
-    bx, by = b
-    return abs(ax - bx) + abs(ay - by)
-
-
-def indexof_nearest(start, items):
-    min_index = 0
-    min_value = distance_2d(start, items[0])
-    for idx in range(1, len(items)):
-        item = items[idx]
-        value = distance_2d(start, item)
-        if value < min_value:
-            min_value = value
-            min_index = idx
-    return min_index
-
-
 def replant_dead_pumpkins(positions):
-    start = (get_pos_x(), get_pos_y())
-    unchecks = positions
-    growings = []
-    while unchecks:
-        while unchecks:
-            # mindex = indexof_nearest(start, unchecks)
-            mvalue = unchecks.pop(0)
+    while len(positions) > num_items(Items.Fertilizer) / 2:
+        for mvalue in list(positions):
             move_to(mvalue)
-            start = mvalue
-            if is_ripe_pumpkin():
+            if can_harvest():
+                positions.remove(mvalue)
                 continue
-            growings.append(mvalue)
             plant(Entities.Pumpkin)
-        unchecks, growings = growings, []
+
+    for mvalue in positions:
+        move_to(mvalue)
+        while not can_harvest():
+            plant(Entities.Pumpkin)
+            use_item(Items.Fertilizer)
+
+
+def check_pumpkin():
+    if can_harvest():
+        return False
+    plant(Entities.Pumpkin)
+    return True
 
 
 def harvest_a_pumpkin():
-    unripes = []
-
-    def check_pumpkin():
-        if is_ripe_pumpkin():
-            return
-        if is_dead_pumpkin():
-            plant(Entities.Pumpkin)
-        unripes.append((get_pos_x(), get_pos_y()))
-
     traverse_rectangle(plant_pumpkin)
-    traverse_rectangle(check_pumpkin)
+    unripes = traverse_rectangle2(check_pumpkin)
     replant_dead_pumpkins(unripes)
-
     harvest()
 
 
-harvest_a_pumpkin()
+def harvest_a_pumpkin_first():
+    traverse_rectangle(plant_pumpkin_first)
+    unripes = traverse_rectangle2(check_pumpkin)
+    replant_dead_pumpkins(unripes)
+    harvest()
+
+
+harvest_a_pumpkin_first()
 while num_items(Items.Pumpkin) < 10000000:
     harvest_a_pumpkin()
