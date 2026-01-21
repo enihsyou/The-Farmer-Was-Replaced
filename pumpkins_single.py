@@ -45,10 +45,6 @@ def move_to(pos):
             move(South)
 
 
-unripes = []
-zero_measures = {}
-
-
 def plant_pumpkin_first():
     till()
     plant_pumpkin()
@@ -56,68 +52,48 @@ def plant_pumpkin_first():
 
 def plant_pumpkin():
     plant(Entities.Pumpkin)
-    if get_water() < 0.75:
+    if get_water() < 0.65:
         use_item(Items.Water)
 
 
+def is_fully_grown_compare_with(d):
+    v = measure()
+    if v != None and measure(d) == v:
+        return True
+
+
+def is_fully_grown():
+    # 四个角落拥有同一个 id 说明南瓜已完全合并
+    x, y = get_pos_x(), get_pos_y()
+    return (
+        (y == 0 and is_fully_grown_compare_with(South))
+        or (y == m and is_fully_grown_compare_with(North))
+        or (x == 0 and is_fully_grown_compare_with(West))
+        or (x == m and is_fully_grown_compare_with(East))
+    )
+
+
 def replant_dead_pumpkins():
-    # if unripes and len(unripes) > num_items(Items.Fertilizer) / 2:
-    #     for mvalue in list(unripes):
-    #         move_to(mvalue)
-    #         x, y = get_pos_x(), get_pos_y()
-    #         if y == m:
-    #             if x in zero_measures and zero_measures[x] == measure():
-    #                 return True
-    #         if can_harvest():
-    #             unripes.remove(mvalue)
-    #             continue
-    #             plant_pumpkin()
     while unripes:
         mvalue = unripes.pop(0)
         move_to(mvalue)
         if plant(Entities.Pumpkin):  # dead pumpkin
             unripes.append(mvalue)
             continue
-        if not can_harvest():  # still growing
-            if num_items(Items.Fertilizer):
-                use_item(Items.Fertilizer)
-                if can_harvest():
-                    continue
-            unripes.append(mvalue)
+        if can_harvest():
+            if unripes and is_fully_grown():  # fully grown up and merged
+                return True # 只在还有其他为检查的植物时做这个提前判断
             continue
-        # if num_items(Items.Fertilizer) > 0:
-        #     use_item(Items.Fertilizer)
-    # for mvalue in unripes:
-    #     move_to(mvalue)
-    #     x, y = get_pos_x(), get_pos_y()
-    #     if y == m:
-    #         if x in zero_measures and zero_measures[x] == measure():
-    #             return True
-    #     while not can_harvest():
-    #         plant_pumpkin()
-    #         use_item(Items.Fertilizer)
-
-
-def is_fully_grown_compare_with(c, d):
-    if c:
-        v = measure()
-        if v != None and measure(d) == v:
-            return True
-
-
-def is_fully_grown():
-    x, y = get_pos_x(), get_pos_y()
-    return (
-        is_fully_grown_compare_with(y == 0, South)
-        or is_fully_grown_compare_with(y == m, North)
-        or is_fully_grown_compare_with(x == 0, West)
-        or is_fully_grown_compare_with(x == m, East)
-    )
+        if use_item(Items.Fertilizer):
+            if can_harvest():
+                if unripes and is_fully_grown():
+                    return True
+                continue
+        unripes.append(mvalue)  # still growing
+        continue
 
 
 def check_pumpkin():
-    # if is_fully_grown():
-    #     return True
     if plant(Entities.Pumpkin):  # dead pumpkin
         unripes.append((get_pos_x(), get_pos_y()))
         return
@@ -140,8 +116,8 @@ def harvest_a_pumpkin_first():
     harvest()
 
 
+unripes = []
 harvest_a_pumpkin_first()
 while num_items(Items.Pumpkin) < 10000000:
     unripes = []
-    zero_measures = {}
     harvest_a_pumpkin()
