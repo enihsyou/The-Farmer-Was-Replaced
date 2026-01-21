@@ -1,4 +1,4 @@
-from __builtins__ import North, wait_for, get_world_size
+from __builtins__ import North, get_world_size, wait_for
 
 WORLD_SIZE = get_world_size()
 WORLD_IS_EVEN = WORLD_SIZE % 2 == 0
@@ -134,6 +134,37 @@ def move_2d_torus(position):
     tx, ty = position
     move_1d_torus(cx, tx, East)
     move_1d_torus(cy, ty, North)
+
+
+def traverse_square(fn):
+    L = get_world_size()
+    for L in range(1, L + 1):
+        if L % 2 == 1:
+            # 奇数 L: North 1, East L, South L
+            fn()
+            move(North)
+            for _ in range(L):
+                fn()
+                move(East)
+            for _ in range(L):
+                fn()
+                move(South)
+        else:
+            # 偶数 L: East 1, North L, West L
+            fn()
+            move(East)
+            for _ in range(L):
+                fn()
+                move(North)
+            for _ in range(L):
+                fn()
+                move(West)
+    if L % 2 == 1:
+        fn()
+        move(East)
+    else:
+        fn()
+        move(North)
 
 
 def move_to(tx, ty):
