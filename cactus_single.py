@@ -1,5 +1,6 @@
+from __builtins__ import set_world_size
 set_world_size(8)
-s = get_world_size()
+s = 8
 m = s - 1
 
 
@@ -7,18 +8,14 @@ def traverse_topdown(fn):
     # 宽度为 2 的逆时针圈不断向东
     for i in range(0, s, 2):
         for j in range(s - 1):
-            if fn():
-                return True
+            fn()
             move(North)
-        if fn():
-            return True
+        fn()
         move(East)
         for j in range(s - 1):
-            if fn():
-                return True
+            fn()
             move(South)
-        if fn():
-            return True
+        fn()
         move(East)
     return False
 
@@ -69,21 +66,15 @@ def cocktail_backward(start, end, direction):
 
 
 def plant_a_cactus():
-    if get_entity_type() != Entities.Cactus:
-        harvest()
-    if get_ground_type() != Grounds.Soil:
-        till()
-    if get_entity_type() != Entities.Cactus:
-        plant(Entities.Cactus)
+    till()
+    plant(Entities.Cactus)
 
 
 traverse_topdown(plant_a_cactus)
 
-starting_position = (get_pos_x(), get_pos_y())
-starting_x, starting_y = starting_position
-
+x = get_pos_x()
 for i in range(s):
-    move_to((starting_x + i, starting_y))
+    move_to(((x + i) % s, 0))
     l, r = 0, s - 1
     while True:
         swapped = cocktail_forward(l, r, North)
@@ -94,9 +85,9 @@ for i in range(s):
         if not swapped:
             break
         l += 1
-
+y = get_pos_y()
 for i in range(s):
-    move_to((starting_x, starting_y + i))
+    move_to((0, (y + i) % s))
     l, r = 0, s - 1
     while True:
         swapped = cocktail_forward(l, r, East)
