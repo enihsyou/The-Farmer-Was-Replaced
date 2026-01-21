@@ -16,7 +16,7 @@ Game version: 1.0
 | Carrots        |           - |           - |          - |
 | Carrots Single |    4:09.969 |          10 | 2026-01-19 |
 | Pumpkins       |           - |           - |          - |
-| Pumpkins Single|    7:59.027 |          29 | 2026-01-21 |
+| Pumpkins Single|    7:39.008 |          11 | 2026-01-21 |
 | Cactus         |           - |           - |          - |
 | Sunflowers     |           - |           - |          - |
 | Dinosaur       |   13:13.941 |          16 | 2026-01-17 |

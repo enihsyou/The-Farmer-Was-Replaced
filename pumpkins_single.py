@@ -79,13 +79,12 @@ def replant_dead_pumpkins():
             unripes.append(mvalue)
             continue
         if not can_harvest():  # still growing
+            if num_items(Items.Fertilizer):
+                use_item(Items.Fertilizer)
+                if can_harvest():
+                    continue
             unripes.append(mvalue)
             continue
-        # if num_items(Items.Fertilizer):
-        #     use_item(Items.Fertilizer)
-        #     if can_harvest():
-        #         continue
-        #     unripes.append(mvalue)
         # if num_items(Items.Fertilizer) > 0:
         #     use_item(Items.Fertilizer)
     # for mvalue in unripes:
