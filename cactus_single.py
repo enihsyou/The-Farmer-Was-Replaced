@@ -1,21 +1,20 @@
-from __builtins__ import set_world_size
-set_world_size(8)
+# set_world_size(8)
 s = 8
 m = s - 1
 
 
-def traverse_topdown(fn):
+def traverse_topdown(fn_north, fn_south):
     # 宽度为 2 的逆时针圈不断向东
     for i in range(0, s, 2):
         for j in range(s - 1):
-            fn()
+            fn_north()
             move(North)
-        fn()
+        fn_north()
         move(East)
         for j in range(s - 1):
-            fn()
+            fn_south()
             move(South)
-        fn()
+        fn_south()
         move(East)
     return False
 
@@ -65,12 +64,29 @@ def cocktail_backward(start, end, direction):
     return swapped
 
 
-def plant_a_cactus():
+def plant_a_cactus_north():
     till()
     plant(Entities.Cactus)
+    vs = measure(South)
+    vw = measure(West)
+    if vs != None and measure() < vs: # type: ignore
+        swap(South)
+    if vw != None and measure() < vw: # type: ignore
+        swap(West)
 
 
-traverse_topdown(plant_a_cactus)
+def plant_a_cactus_south():
+    till()
+    plant(Entities.Cactus)
+    vn = measure(North)
+    ve = measure(East)
+    if vn != None and measure() > vn: # type: ignore
+        swap(North)
+    if ve != None and measure() > ve: # type: ignore
+        swap(East)
+
+
+traverse_topdown(plant_a_cactus_north, plant_a_cactus_south)
 
 x = get_pos_x()
 for i in range(s):
