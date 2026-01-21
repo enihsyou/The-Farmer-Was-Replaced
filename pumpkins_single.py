@@ -7,17 +7,19 @@ m = s - 1
 def traverse_topdown(fn):
     # 宽度为 2 的逆时针圈不断向东
     for i in range(0, s, 2):
-        for j in range(s):
+        for j in range(s - 1):
             if fn():
                 return True
-            if j != m:
-                move(North)
+            move(North)
+        if fn():
+            return True
         move(East)
-        for j in range(s):
+        for j in range(s - 1):
             if fn():
                 return True
-            if j != m:
-                move(South)
+            move(South)
+        if fn():
+            return True
         move(East)
     return False
 
@@ -56,20 +58,15 @@ def plant_pumpkin():
         use_item(Items.Water)
 
 
-def is_fully_grown_compare_with(d):
-    v = measure()
-    if v != None and measure(d) == v:
-        return True
-
-
 def is_fully_grown():
     # 四个角落拥有同一个 id 说明南瓜已完全合并
     x, y = get_pos_x(), get_pos_y()
+    v = measure()  # 一定不是 None
     return (
-        (y == 0 and is_fully_grown_compare_with(South))
-        or (y == m and is_fully_grown_compare_with(North))
-        or (x == 0 and is_fully_grown_compare_with(West))
-        or (x == m and is_fully_grown_compare_with(East))
+        (y == 0 and v == measure(South))
+        or (y == m and v == measure(North))
+        or (x == 0 and v == measure(West))
+        or (x == m and v == measure(East))
     )
 
 
@@ -82,7 +79,7 @@ def replant_dead_pumpkins():
             continue
         if can_harvest():
             if unripes and is_fully_grown():  # fully grown up and merged
-                return True # 只在还有其他为检查的植物时做这个提前判断
+                return True  # 只在还有其他为检查的植物时做这个提前判断
             continue
         if use_item(Items.Fertilizer):
             if can_harvest():
