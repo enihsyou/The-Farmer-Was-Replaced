@@ -1,20 +1,20 @@
 # set_world_size(8)
-s = 8
+s = get_world_size()
 m = s - 1
 
 
-def traverse_topdown(fn_north, fn_south):
+def traverse_topdown(fn):
     # 宽度为 2 的逆时针圈不断向东
     for i in range(0, s, 2):
         for j in range(s - 1):
-            fn_north()
+            fn()
             move(North)
-        fn_north()
+        fn()
         move(East)
         for j in range(s - 1):
-            fn_south()
+            fn()
             move(South)
-        fn_south()
+        fn()
         move(East)
     return False
 
@@ -42,77 +42,42 @@ def move_to(pos):
             move(South)
 
 
-def cocktail_forward(start, end, direction):
-    swapped = False
-    for i in range(start, end):
-        if measure() > measure(direction):  # type: ignore
-            swap(direction)
-            swapped = True
-        if i != end - 1:
-            move(direction)
-    return swapped
-
-
-def cocktail_backward(start, end, direction):
-    swapped = False
-    for i in range(end - 1, start - 1, -1):
-        if measure() < measure(direction):  # type: ignore
-            swap(direction)
-            swapped = True
-        if i != start:
-            move(direction)
-    return swapped
-
-
 def plant_a_cactus_north():
     till()
     plant(Entities.Cactus)
-    vs = measure(South)
-    vw = measure(West)
-    if vs != None and measure() < vs: # type: ignore
-        swap(South)
-    if vw != None and measure() < vw: # type: ignore
-        swap(West)
 
-
-def plant_a_cactus_south():
-    till()
-    plant(Entities.Cactus)
-    vn = measure(North)
-    ve = measure(East)
-    if vn != None and measure() > vn: # type: ignore
-        swap(North)
-    if ve != None and measure() > ve: # type: ignore
-        swap(East)
-
-
-traverse_topdown(plant_a_cactus_north, plant_a_cactus_south)
-
-x = get_pos_x()
-for i in range(s):
-    move_to(((x + i) % s, 0))
-    l, r = 0, s - 1
+def perform_insertion_sort():
     while True:
-        swapped = cocktail_forward(l, r, North)
-        if not swapped:
-            break
-        r -= 1
-        swapped = cocktail_backward(l, r, South)
-        if not swapped:
-            break
-        l += 1
-y = get_pos_y()
-for i in range(s):
-    move_to((0, (y + i) % s))
-    l, r = 0, s - 1
-    while True:
-        swapped = cocktail_forward(l, r, East)
-        if not swapped:
-            break
-        r -= 1
-        swapped = cocktail_backward(l, r, West)
-        if not swapped:
-            break
-        l += 1
+        v = measure()
+        x, y = get_pos_x(), get_pos_y()
+        vw = measure(West)
+        vs = measure(South)
+        if x != 0 and v < vw:  # type: ignore
+            if y != 0 and vw < vs:  # type: ignore
+                dir = South  # 和更大的一个交换，维持已有顺序
+            else:
+                dir = West
+            swap(dir)
+            move(dir)
+            continue
+        if y != 0 and v < vs:  # type: ignore
+            if x != 0 and vs < vw:  # type: ignore
+                dir = West
+            else:
+                dir = South
+            swap(dir)
+            move(dir)
+            continue
+        break
+
+
+traverse_topdown(plant_a_cactus_north)
+
+for i in range(s * 2):
+    for j in range(i + 1):
+        if j > m or i - j > m:
+            continue
+        move_to((j, i - j))
+        perform_insertion_sort()
 
 harvest()
