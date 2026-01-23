@@ -1,22 +1,6 @@
-set_world_size(8)
+# set_world_size(8)
 s = get_world_size()
 m = s - 1
-
-
-def traverse_topdown(fn):
-    # 宽度为 2 的逆时针圈不断向东
-    for i in range(0, s, 2):
-        for j in range(s - 1):
-            fn()
-            move(North)
-        fn()
-        move(East)
-        for j in range(s - 1):
-            fn()
-            move(South)
-        fn()
-        move(East)
-    return False
 
 
 def move_to(pos):
@@ -40,18 +24,6 @@ def move_to(pos):
     else:
         for _ in range(dy_south):
             move(South)
-
-
-def plant_a_cactus_north():
-    till()
-    plant(Entities.Cactus)
-    x, y = get_pos_x(), get_pos_y()
-    if x % 2 == 0 and y != 0 and measure(South) > measure():  # type: ignore
-        swap(South)
-    if x % 2 == 1 and y != m and measure(North) < measure():  # type: ignore
-        swap(North)
-    if x != 0 and measure(West) > measure():  # type: ignore
-        swap(West)
 
 
 def perform_insertion_sort():
@@ -79,14 +51,20 @@ def perform_insertion_sort():
         break
 
 
-traverse_topdown(plant_a_cactus_north)
-
+last_few = s * 2 - 3 # 最后三个浇水快速成长
 for i in range(s * 2):
     for j in range(i + 1):
         # 走一个 x + y = i 形状的对角线，左下角是排好序的
         if j > m or i - j > m:
             continue
         move_to((j, i - j))
+        till()
+        plant(Entities.Cactus)
         perform_insertion_sort()
+        if i >= last_few:
+            use_item(Items.Water)
+            use_item(Items.Water)
 
+for _ in range(8): # 消耗时间等待长成
+    move(North)
 harvest()
