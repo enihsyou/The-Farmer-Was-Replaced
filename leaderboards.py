@@ -22,5 +22,9 @@ def run_leaderboard_pumpkins_single():
     leaderboard_run(Leaderboards.Pumpkins_Single, "pumpkins_single", 40960)
 
 
+def run_leaderboard_sunflowers_single():
+    leaderboard_run(Leaderboards.Sunflowers_Single, "sunflowers_single", 40960)
+
+
 if __name__ == "__main__":
-    run_leaderboard_pumpkins_single()
+    run_leaderboard_sunflowers_single()()
