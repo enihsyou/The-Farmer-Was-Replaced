@@ -61,8 +61,7 @@ def on_eachcell():
 
 
 def first_round():
-    if get_ground_type() != Grounds.Soil:
-        till()
+    till()
     on_eachcell()
 
 
