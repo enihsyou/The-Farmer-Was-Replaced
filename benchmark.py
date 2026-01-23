@@ -20,7 +20,8 @@ def print_ticks(fn):
 
 
 def bench_target():
-    move(North)
+    for _ in range(29):
+        move(North)
 
 set_world_size(3)
 for _ in range(100):
