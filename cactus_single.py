@@ -1,4 +1,4 @@
-# set_world_size(8)
+set_world_size(8)
 s = get_world_size()
 m = s - 1
 
@@ -45,6 +45,14 @@ def move_to(pos):
 def plant_a_cactus_north():
     till()
     plant(Entities.Cactus)
+    x, y = get_pos_x(), get_pos_y()
+    if x % 2 == 0 and y != 0 and measure(South) > measure():  # type: ignore
+        swap(South)
+    if x % 2 == 1 and y != m and measure(North) < measure():  # type: ignore
+        swap(North)
+    if x != 0 and measure(West) > measure():  # type: ignore
+        swap(West)
+
 
 def perform_insertion_sort():
     while True:
@@ -75,6 +83,7 @@ traverse_topdown(plant_a_cactus_north)
 
 for i in range(s * 2):
     for j in range(i + 1):
+        # 走一个 x + y = i 形状的对角线，左下角是排好序的
         if j > m or i - j > m:
             continue
         move_to((j, i - j))
