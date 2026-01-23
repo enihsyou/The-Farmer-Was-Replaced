@@ -5,7 +5,7 @@ from library import *
 def cocktail_forward(start, end, direction):
     swapped = False
     for i in range(start, end):
-        if measure() > measure(direction):  # type: ignore
+        if measure() > measure(direction):  # ty: ignore
             swap(direction)
             swapped = True
         if i != end - 1:
@@ -16,7 +16,7 @@ def cocktail_forward(start, end, direction):
 def cocktail_backward(start, end, direction):
     swapped = False
     for i in range(end - 1, start - 1, -1):
-        if measure() < measure(direction):  # type: ignore
+        if measure() < measure(direction):  # ty: ignore
             swap(direction)
             swapped = True
         if i != start:

@@ -45,10 +45,10 @@ def poly_hays():
                 plant(Entities.Grass)
             if can_harvest():
                 harvest()
-            companion, pos = get_companion()  # type: ignore
+            companion, pos = get_companion()  # ty: ignore
             while companion != Entities.Bush or pos in core_locations:
                 plant(Entities.Grass)
-                companion, pos = get_companion()  # type: ignore
+                companion, pos = get_companion()  # ty: ignore
             while get_water() < 0.75 and num_items(Items.Water) > 0:
                 use_item(Items.Water)
             move(dir)
@@ -90,7 +90,7 @@ def poly_multidrone_hays():
             while True:
                 harvest()
                 plant(Entities.Grass)
-                companion, (x, y) = get_companion()  # type: ignore
+                companion, (x, y) = get_companion()  # ty: ignore
                 if companion == Entities.Bush and y > 0:
                     break
             while get_water() < 0.75 and num_items(Items.Water) > 0:

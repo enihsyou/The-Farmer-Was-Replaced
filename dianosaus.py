@@ -17,7 +17,7 @@ def cycle_loop():
         x, y = get_pos_x(), get_pos_y()
         if get_entity_type() == Entities.Apple:
             snake += 1
-            wx, wy = measure()  # type: ignore
+            wx, wy = measure()  # ty: ignore
 
         # 不留缝隙地占满空间，强迫果子生成在前方，提速 10%
         if snake > l:

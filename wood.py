@@ -32,7 +32,7 @@ def poly_woods():
             while True:
                 harvest()
                 plant(Entities.Tree)
-                companion, pos = get_companion()  # type: ignore
+                companion, pos = get_companion()  # ty: ignore
                 if not is_tree_position(pos) and companion == Entities.Grass:
                     break
             while get_water() < 0.75 and num_items(Items.Water) > 0:
@@ -56,7 +56,7 @@ def ploy_multidrone_woods():
             while True:
                 harvest()
                 plant(Entities.Tree)
-                companion, pos = get_companion()  # type: ignore
+                companion, pos = get_companion()  # ty: ignore
                 x, y = pos
                 if companion == Entities.Grass:
                     if y > 0 or not is_tree_position(pos):

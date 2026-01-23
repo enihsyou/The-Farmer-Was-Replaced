@@ -21,7 +21,7 @@ def poly_carrots():
         while True:
             harvest()
             plant(Entities.Carrot)
-            companion, pos = get_companion()  # type: ignore
+            companion, pos = get_companion()  # ty: ignore
             if companion == Entities.Grass:
                 break
         while get_water() < 0.75 and num_items(Items.Water) > 0:
@@ -39,7 +39,7 @@ def ploy_multidrone_carrots():
             while True:
                 harvest()
                 plant(Entities.Carrot)
-                companion, (x, y) = get_companion()  # type: ignore
+                companion, (x, y) = get_companion()  # ty: ignore
                 if companion == Entities.Grass:
                     if not (0 <= x < w and 0 <= y < h):
                         break
