@@ -20,16 +20,7 @@ def print_ticks(fn):
 
 
 def bench_target():
-    while not can_harvest():
-        continue
-    harvest()
-    c, _ = get_companion()  # type: ignore
-    while c != Entities.Bush:
-        harvest()
-        c, _ = get_companion()  # type: ignore
-    while get_water() < 0.85:
-        use_item(Items.Water)
-
+    move(North)
 
 set_world_size(3)
 for _ in range(100):
