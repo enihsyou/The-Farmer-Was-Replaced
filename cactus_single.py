@@ -1,4 +1,5 @@
 # set_world_size(8)
+from __builtins__ import can_harvest, change_hat
 s = get_world_size()
 m = s - 1
 
@@ -63,8 +64,7 @@ for i in range(s * 2):
         perform_insertion_sort()
         if i >= last_few:
             use_item(Items.Water)
-            use_item(Items.Water)
 
-for _ in range(8): # 消耗时间等待长成
-    move(North)
+while not can_harvest():
+    change_hat(Hats.Brown_Hat)  # 消耗时间等待长成
 harvest()
