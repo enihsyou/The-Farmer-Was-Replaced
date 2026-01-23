@@ -23,4 +23,4 @@ def run_leaderboard_pumpkins_single():
 
 
 if __name__ == "__main__":
-    run_leaderboard_hay_single()
+    run_leaderboard_wood_single()

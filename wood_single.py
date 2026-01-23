@@ -1,5 +1,4 @@
 # set_world_size(8)
-from __builtins__ import Entities
 s = get_world_size()
 m = s - 1
 n = s - 2
@@ -32,16 +31,34 @@ def traverse_rectangle(fn):
 
     return True  # loop continues
 
+def traverse_rectangle_no_if(fn):
+    fn()
+    move(North)
+    for i in range(0, s, 2):
+        for j in range(m):
+            fn()
+            if j != n:
+                move(North)
+        move(East)
+        for j in range(m):
+            fn()
+            if j != n:
+                move(South)
+        if i != n:
+            move(East)
+    move(South)
+    for _ in range(m):
+        fn()
+        move(West)
+
+
 
 wants = {}  # 记录种植需求
 
 
 def is_tree_pos(p):
-    return (p[0] + p[1]) % 2 == 0
-
-
-def not_tree_pos(p):
-    return (p[0] + p[1]) % 2 != 0
+    x, y = p
+    return (x + y) % 2 == 0
 
 
 def on_eachcell():
@@ -89,8 +106,7 @@ def on_eachcell():
 
 
 def first_round():
-    if get_ground_type() != Grounds.Soil:
-        till()
+    till()
     on_eachcell()
 
 
@@ -99,6 +115,8 @@ def while_round():
     return num_items(Items.Wood) >= 500000000
 
 
-traverse_rectangle(first_round)
+traverse_rectangle_no_if(first_round)
+for _ in range(34): # 需要约 37 轮能够收集到足够的木头
+    traverse_rectangle_no_if(on_eachcell)
 while traverse_rectangle(while_round):
     continue

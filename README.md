@@ -10,9 +10,9 @@ Game version: 1.0
 | Category          | Best Time   | Global Rank | Date       |
 |-------------------|------------:|------------:|------------|
 | Hay               |           - |           - |          - |
-| Hay Single        |    2:50.050 |          14 | 2026-01-18 |
+| Hay Single        |    2:50.050 |          14 | 2026-01-23 |
 | Wood              |           - |           - |          - |
-| Wood Single       |    6:08.831 |          13 | 2026-01-20 |
+| Wood Single       |    6:03.191 |          12 | 2026-01-23 |
 | Carrots           |           - |           - |          - |
 | Carrots Single    |    4:09.969 |          10 | 2026-01-19 |
 | Pumpkins          |           - |           - |          - |
