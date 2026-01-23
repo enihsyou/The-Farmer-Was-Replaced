@@ -7,14 +7,14 @@ m = s - 1
 def traverse_topdown(fn):
     # 宽度为 2 的逆时针圈不断向东
     for i in range(0, s, 2):
-        for j in range(s - 1):
+        for j in range(m):
             if fn():
                 return True
             move(North)
         if fn():
             return True
         move(East)
-        for j in range(s - 1):
+        for j in range(m):
             if fn():
                 return True
             move(South)
@@ -24,12 +24,26 @@ def traverse_topdown(fn):
     return False
 
 
+def traverse_topdown_no_if(fn):
+    for i in range(0, s, 2):
+        for j in range(m):
+            fn()
+            move(North)
+        fn()
+        move(East)
+        for j in range(m):
+            fn()
+            move(South)
+        fn()
+        move(East)
+
+
 def move_to(pos):
     cx, cy = get_pos_x(), get_pos_y()
     tx, ty = pos
 
     dx_east = (tx - cx) % s
-    dx_west = (cx - tx) % s
+    dx_west = s - dx_east
     if dx_east < dx_west:
         for _ in range(dx_east):
             move(East)
@@ -38,7 +52,7 @@ def move_to(pos):
             move(West)
 
     dy_north = (ty - cy) % s
-    dy_south = (cy - ty) % s
+    dy_south = s - dy_north
     if dy_north < dy_south:
         for _ in range(dy_north):
             move(North)
@@ -58,9 +72,9 @@ def plant_pumpkin():
         use_item(Items.Water)
 
 
-def is_fully_grown():
+def is_fully_grown(mvalue):
     # 四个角落拥有同一个 id 说明南瓜已完全合并
-    x, y = get_pos_x(), get_pos_y()
+    x, y = mvalue
     v = measure()  # 一定不是 None
     return (
         (y == 0 and v == measure(South))
@@ -78,12 +92,12 @@ def replant_dead_pumpkins():
             unripes.append(mvalue)
             continue
         if can_harvest():
-            if unripes and is_fully_grown():  # fully grown up and merged
+            if unripes and is_fully_grown(mvalue):  # fully grown up and merged
                 return True  # 只在还有其他为检查的植物时做这个提前判断
             continue
         if use_item(Items.Fertilizer):
             if can_harvest():
-                if unripes and is_fully_grown():
+                if unripes and is_fully_grown(mvalue):
                     return True
                 continue
         unripes.append(mvalue)  # still growing
@@ -100,21 +114,24 @@ def check_pumpkin():
 
 
 def harvest_a_pumpkin():
-    traverse_topdown(plant_pumpkin)
-    if not traverse_topdown(check_pumpkin):
-        replant_dead_pumpkins()
+    traverse_topdown_no_if(plant_pumpkin)
+    traverse_topdown_no_if(check_pumpkin) # 基本不可能一遍就种成功吧
+    replant_dead_pumpkins()
     harvest()
 
 
 def harvest_a_pumpkin_first():
-    traverse_topdown(plant_pumpkin_first)
-    if not traverse_topdown(check_pumpkin):
-        replant_dead_pumpkins()
+    traverse_topdown_no_if(plant_pumpkin_first)
+    traverse_topdown_no_if(check_pumpkin)
+    replant_dead_pumpkins()
     harvest()
 
 
 unripes = []
 harvest_a_pumpkin_first()
+for _ in range(89):  # 需要 92 轮才能达到目标
+    unripes = []
+    harvest_a_pumpkin()
 while num_items(Items.Pumpkin) < 10000000:
     unripes = []
     harvest_a_pumpkin()
