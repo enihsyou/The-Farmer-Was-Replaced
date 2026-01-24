@@ -98,19 +98,66 @@ def perform_insertion_sort():
         break
 
 
-last_one = m * 2  # 等待最后一个成熟
-last_few = last_one - 1  # 最后几株先种再排序
-for i in range(last_few):
-    for j in range(min(i + 1, s)):
-        # 走一个 x + y = i 形状的对角线，左下角是排好序的
-        if i - j > m:
-            continue
-        move_to(j, i - j)
+# 走一个 x + y = i 形状的对角线，左下角是排好序的
+POSITIONS = [
+    {(0, 0)},
+    #
+    {(0, 1), (1, 0)},
+    #
+    {(0, 2), (1, 1), (2, 0)},
+    #
+    {(0, 3), (1, 2), (2, 1), (3, 0)},
+    #
+    {(0, 4), (1, 3), (2, 2), (3, 1), (4, 0)},
+    #
+    {(0, 5), (1, 4), (2, 3), (3, 2), (4, 1), (5, 0)},
+    #
+    {(0, 6), (1, 5), (2, 4), (3, 3), (4, 2), (5, 1), (6, 0)},
+    #
+    {(0, 7), (1, 6), (2, 5), (3, 4), (4, 3), (5, 2), (6, 1), (7, 0)},
+    #
+    {(1, 7), (2, 6), (3, 5), (4, 4), (5, 3), (6, 2), (7, 1)},
+    #
+    {(2, 7), (3, 6), (4, 5), (5, 4), (6, 3), (7, 2)},
+    #
+    {(3, 7), (4, 6), (5, 5), (6, 4), (7, 3)},
+    #
+    {(4, 7), (5, 6), (6, 5), (7, 4)},
+    #
+    {(5, 7), (6, 6), (7, 5)},
+    #
+    # {(6, 7), (7, 6)},
+    #
+    # {(7, 7)},
+]
+#
+
+
+last_plant_time = 0
+max_dis = s + s
+for diag_pos in POSITIONS:
+    while diag_pos:
+        x, y = get_pos_x(), get_pos_y()
+
+        # 去往离当前最近的对角线上的点
+        min_pos = None
+        min_dis = max_dis
+        for pos in diag_pos:
+            mx, my = pos
+            dis = abs(mx - x) + abs(my - y)
+            if dis < min_dis:
+                min_dis = dis
+                min_pos = pos
+
+        x, y = min_pos
+        diag_pos.remove(min_pos)
+        move_to(x, y)
         till()
         plant(Entities.Cactus)
+        last_plant_time = get_time()
         perform_insertion_sort()
 
-
+# 最后几株先种再排序
 move_to(m, m - 1)
 use_item(Items.Fertilizer)
 harvest()  # harvest weird substance
@@ -135,4 +182,6 @@ perform_insertion_sort()
 move_to(m, m)
 perform_insertion_sort()
 # 最后几株生长时间大于排序时间就有几率失败
+while get_time() - last_plant_time < 0.97:
+    continue
 harvest()
