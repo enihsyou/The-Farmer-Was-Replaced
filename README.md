@@ -18,7 +18,7 @@ Game version: 1.0
 | Pumpkins          |           - |           - |          - |
 | Pumpkins Single   |    7:29.750 |           8 | 2026-01-24 |
 | Cactus            |           - |           - |          - |
-| Cactus Single     |      20.496 |          17 | 2026-01-24 |
+| Cactus Single     |      20.321 |          17 | 2026-01-24 |
 | Sunflowers        |           - |           - |          - |
 | Sunflowers Single |    6:05.947 |          60 | 2026-01-24 |
 | Dinosaur          |   13:13.941 |          16 | 2026-01-17 |

@@ -98,89 +98,41 @@ def perform_insertion_sort():
         break
 
 
-def perform_insertion_sort_last_few():
-    while True:
-        v = measure()
-        x, y = get_pos_x(), get_pos_y()
-
-        if x > 0:
-            vw = measure(West)
-            if v < vw:  # ty: ignore
-                vs = measure(South)
-                if y > 0 and vw < vs:  # ty: ignore
-                    dir = South  # 和更大的一个交换，维持已有顺序
-                else:
-                    dir = West
-                swap(dir)
-                move(dir)
-                continue
-
-        if y > 0:
-            vs = measure(South)
-            if v < vs:  # ty: ignore
-                if x > 0 and vs < vw:  # ty: ignore
-                    dir = West
-                else:
-                    dir = South
-                swap(dir)
-                move(dir)
-                continue
-
-        use_item(Items.Water)
-        use_item(Items.Water)
-        break
-
-
-def perform_insertion_sort_last_one():
-    while True:
-        v = measure()
-        x, y = get_pos_x(), get_pos_y()
-
-        if x > 0:
-            vw = measure(West)
-            if v < vw:  # ty: ignore
-                vs = measure(South)
-                if y > 0 and vw < vs:  # ty: ignore
-                    dir = South  # 和更大的一个交换，维持已有顺序
-                else:
-                    dir = West
-                swap(dir)
-                move(dir)
-                continue
-
-        if y > 0:
-            vs = measure(South)
-            if v < vs:  # ty: ignore
-                if x > 0 and vs < vw:  # ty: ignore
-                    dir = West
-                else:
-                    dir = South
-                swap(dir)
-                move(dir)
-                continue
-
-        while not can_harvest():
-            # 水量充足后不再花 200 tick 浇水，转而只用 2 tick 做判断
-            if get_water() < 0.75:
-                use_item(Items.Water)
-        break
-
-
 last_one = m * 2  # 等待最后一个成熟
-last_few = last_one - 1  # 最后几个浇水快速成长
-for i in range(s * 2):
-    for j in range(i + 1):
+last_few = last_one - 1  # 最后几株先种再排序
+for i in range(last_few):
+    for j in range(min(i + 1, s)):
         # 走一个 x + y = i 形状的对角线，左下角是排好序的
-        if j > m or i - j > m:
+        if i - j > m:
             continue
         move_to(j, i - j)
         till()
         plant(Entities.Cactus)
-        if i == last_one:
-            perform_insertion_sort_last_one()
-        elif i >= last_few:
-            perform_insertion_sort_last_few()
-        else:
-            perform_insertion_sort()
+        perform_insertion_sort()
 
+
+move_to(m, m - 1)
+use_item(Items.Fertilizer)
+harvest()  # harvest weird substance
+
+till()
+plant(Entities.Cactus)
+use_item(Items.Fertilizer)
+move(West)
+move(North)  # at (m - 1, m)
+till()
+plant(Entities.Cactus)
+use_item(Items.Fertilizer)
+move(East)  # at (m, m)
+till()
+plant(Entities.Cactus)
+use_item(Items.Fertilizer)
+use_item(Items.Weird_Substance)
+move(South)  # at (m, m - 1)
+perform_insertion_sort()
+move_to(m - 1, m)
+perform_insertion_sort()
+move_to(m, m)
+perform_insertion_sort()
+# 最后几株生长时间大于排序时间就有几率失败
 harvest()
