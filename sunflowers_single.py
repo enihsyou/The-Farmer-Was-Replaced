@@ -2,6 +2,9 @@
 s = get_world_size()
 m = s - 1
 
+# twealable parameters
+W = 0.72
+
 
 def traverse_topdown_no_if(fn):
     for i in range(0, s, 2):
@@ -38,9 +41,6 @@ def move_to(pos):
     else:
         for _ in range(dy_south):
             move(South)
-
-
-W = 0.75
 
 
 def plant_a_sunflower_first(i):
