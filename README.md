@@ -20,7 +20,7 @@ Game version: 1.0
 | Cactus            |           - |           - |          - |
 | Cactus Single     |      20.224 |          17 | 2026-01-24 |
 | Sunflowers        |           - |           - |          - |
-| Sunflowers Single |    5:23.408 |          24 | 2026-01-26 |
+| Sunflowers Single |    5:05.235 |          14 | 2026-01-26 |
 | Dinosaur          |   13:13.941 |          16 | 2026-01-17 |
 | Maze              |           - |           - |          - |
 | Maze Single       |           - |           - |          - |
