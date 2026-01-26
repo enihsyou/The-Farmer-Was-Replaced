@@ -27,4 +27,4 @@ def run_leaderboard_sunflowers_single():
 
 
 if __name__ == "__main__":
-    run_leaderboard_sunflowers_single()()
+    run_leaderboard_sunflowers_single()

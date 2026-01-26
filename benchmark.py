@@ -6,6 +6,7 @@
 # - tuple unpack 比 index 更快
 # - while 循环用 continue 比 pass 做循环体更快
 # - 等待成长用 while not can_harvest(): continue
+# - list.pop() 比 list.pop(0) 更快
 from __builtins__ import use_item, quick_print
 
 
@@ -20,9 +21,8 @@ def print_ticks(fn):
 
 
 def bench_target():
-    for _ in range(29):
-        move(North)
+    a = [1,2,3,4,5]
+    a.pop()
 
-set_world_size(3)
 for _ in range(100):
     print_ticks(bench_target)
