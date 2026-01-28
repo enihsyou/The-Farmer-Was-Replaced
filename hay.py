@@ -1,114 +1,110 @@
-from __builtins__ import (
-    East,
-    North,
-    can_harvest,
-    get_world_size,
-    max_drones,
-    num_drones,
-    spawn_drone,
-)
-from library import *
+s = get_world_size()
+N = 2000000000
+W = 0.75
+
+OFFSETS = {
+    North: (0, 1),
+    South: (0, -1),
+    East: (1, 0),
+    West: (-1, 0),
+}
+OPPOSITE = {
+    North: South,
+    South: North,
+    East: West,
+    West: East,
+}
 
 
-def harvest_hays(w, h):
-    def plant_and_harvest():
-        if can_harvest():
-            harvest()
-        if get_entity_type() != Entities.Grass:
-            plant(Entities.Grass)
+def visit_neighbors_creator(dirs):
+    visited = set()
 
-    traverse_rectangle(plant_and_harvest, w, h)
-
-
-def poly_hays():
-    def plant_bush():
-        if get_entity_type() != Entities.Bush:
-            harvest()
-        if get_entity_type() != Entities.Bush:
+    def r(i):
+        for d in dirs:
+            cx, cy = get_pos_x(), get_pos_y()
+            dx, dy = OFFSETS[d]
+            nx, ny = cx + dx, cy + dy
+            if (nx, ny) in visited:
+                continue
+            visited.add((nx, ny))
+            move(d)
             plant(Entities.Bush)
+            if i < 3:
+                r(i + 1)
+            # backtrack
+            move(OPPOSITE[d])
 
-    # 用灌木占满空间
-    move_2d_torus(zeroing_position)
-    traverse_rectangle(plant_bush, WORLD_SIZE, WORLD_SIZE)
-    world_center = (HALF_WORLD_SIZE, HALF_WORLD_SIZE)
-    loop = [South, West, North, East]
-    core_locations = []
-    position = world_center
-    for dir in loop:
-        position = adjecent_coordination(position, dir)
-        core_locations.append(position)
+    return r
 
-    move_2d_torus(world_center)
+
+VISIT_EAST = visit_neighbors_creator([East, North, South])
+VISIT_WEST = visit_neighbors_creator([West, North, South])
+VISIT_NORTH = visit_neighbors_creator([North])
+VISIT_SOUTH = visit_neighbors_creator([South])
+
+
+def plant_bush_around():
+    move(West)
+    VISIT_WEST(2)
+    move(East)
+
+    VISIT_NORTH(1)
+    VISIT_SOUTH(1)
+
+    move(East)
+
+    VISIT_NORTH(1)
+    VISIT_SOUTH(1)
+
+    move(East)
+    VISIT_EAST(2)
+    move(West)
+
+
+def harvest_poly_hay():
+    while get_water() < W:
+        use_item(Items.Water)
+    while not can_harvest():
+        if use_item(Items.Fertilizer):
+            use_item(Items.Weird_Substance)
+    harvest()
+    c, _ = get_companion()
+    while c != Entities.Bush:
+        harvest()
+        c, _ = get_companion()
+    return num_items(Items.Hay) < N
+
+
+def work_drone_task():
+    plant_bush_around()
     while True:
-        for dir in loop:
-            if get_entity_type() != Entities.Grass:
-                plant(Entities.Grass)
-            if can_harvest():
-                harvest()
-            companion, pos = get_companion()  # ty: ignore
-            while companion != Entities.Bush or pos in core_locations:
-                plant(Entities.Grass)
-                companion, pos = get_companion()  # ty: ignore
-            while get_water() < 0.75 and num_items(Items.Water) > 0:
-                use_item(Items.Water)
-            move(dir)
-
-
-def multidrone_hays():
-    def harvest_hay_column():
-        for i in range(get_world_size()):
-            harvest()
-            if i != get_world_size() - 1:
-                move(North)
-
-    def spawn_task():
-        while True:
-            if spawn_drone(harvest_hay_column):
-                move(East)
-
-    spawn_task()
-
-
-def poly_multidrone_hays():
-    def plant_bush_column():
-        for i in range(get_world_size()):
-            if get_entity_type() != Entities.Bush:
-                harvest()
-            if get_entity_type() != Entities.Bush:
-                plant(Entities.Bush)
-            if i != get_world_size() - 1:
-                move(North)
-
-    def spawn_plant_bush():
-        for i in range(get_world_size()):
-            while not spawn_drone(plant_bush_column):
-                pass
+        if harvest_poly_hay():
+            move(West)
+        else:
+            break
+        if harvest_poly_hay():
             move(East)
+        else:
+            break
 
-    def harvest_hay_column():
-        while True:
-            while True:
-                harvest()
-                plant(Entities.Grass)
-                companion, (x, y) = get_companion()  # ty: ignore
-                if companion == Entities.Bush and y > 0:
-                    break
-            while get_water() < 0.75 and num_items(Items.Water) > 0:
-                use_item(Items.Water)
-            while not can_harvest():
-                pass
 
-    def spawn_harvest_hay():
-        for _ in range(max_drones() - 1):
-            while not spawn_drone(harvest_hay_column):
-                pass
+def spawn_drone_task2():
+    for _ in range(3):
+        spawn_drone(work_drone_task)
+        for _ in range(8):
             move(East)
-        harvest_hay_column()
-
-    spawn_plant_bush()
-    spawn_harvest_hay()
+    work_drone_task()
 
 
-if __name__ == "__main__":
-    clear()
-    poly_multidrone_hays()
+def spawn_drone_task1():
+    for _ in range(7):
+        spawn_drone(spawn_drone_task2)
+        for _ in range(4):
+            move(East)
+        for _ in range(4):
+            move(North)
+    spawn_drone_task2()
+
+
+clear()
+spawn_drone_task1()

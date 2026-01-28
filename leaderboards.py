@@ -2,6 +2,10 @@ def run_leaderboard_dianosaus():
     leaderboard_run(Leaderboards.Dinosaur, "dianosaus", 40960)
 
 
+def run_leaderboard_hay():
+    leaderboard_run(Leaderboards.Hay, "hay", 4096)
+
+
 def run_leaderboard_hay_single():
     leaderboard_run(Leaderboards.Hay_Single, "hay_single", 40960)
 
@@ -53,4 +57,4 @@ def simulate_leaderboard_sunflowers_single():
 
 
 if __name__ == "__main__":
-    run_leaderboard_sunflowers_single()
+    run_leaderboard_hay()
