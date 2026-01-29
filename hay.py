@@ -1,7 +1,5 @@
-from __builtins__ import can_harvest
-s = get_world_size()
 N = 2000000000
-W = 0.75
+W = 0.68
 
 OFFSETS = {
     North: (0, 1),
@@ -25,9 +23,10 @@ def visit_neighbors_creator(dirs):
             cx, cy = get_pos_x(), get_pos_y()
             dx, dy = OFFSETS[d]
             nx, ny = cx + dx, cy + dy
-            if (nx, ny) in visited:
+            next = (nx, ny)
+            if next in visited:
                 continue
-            visited.add((nx, ny))
+            visited.add(next)
             move(d)
             plant(Entities.Bush)
             if i < 3:
@@ -62,29 +61,37 @@ def plant_bush_around():
     move(West)
 
 
-def harvest_poly_hay():
-    while get_water() < W and num_items(Items.Water) > 32:
+def harvest_poly_hay(avoid_x, avoid_y):
+    while get_water() < W and num_items(Items.Water) > 16:
         use_item(Items.Water)
-    if can_harvest():
+    harvest()
+    c, pos = get_companion()
+    x, y = pos
+    while c != Entities.Bush or (x == avoid_x and y == avoid_y):
         harvest()
-        c, _ = get_companion()
-        while c != Entities.Bush:
-            harvest()
-            c, _ = get_companion()
-    return num_items(Items.Hay) < N
+        c, pos = get_companion()
+        x, y = pos
 
 
 def work_drone_task():
     plant_bush_around()
+    y = get_pos_y()
+    x_east = get_pos_x()
+    x_west = x_east - 1
+    for _ in range(360):  # 每部无人机预计需要 381 次收集能达到目标
+        harvest_poly_hay(x_west, y)
+        move(West)
+        harvest_poly_hay(x_east, y)
+        move(East)
     while True:
-        if harvest_poly_hay():
-            move(West)
-        else:
-            break
-        if harvest_poly_hay():
-            move(East)
-        else:
-            break
+        harvest_poly_hay(x_west, y)
+        if num_items(Items.Hay) >= N:
+            return
+        move(West)
+        harvest_poly_hay(x_east, y)
+        if num_items(Items.Hay) >= N:
+            return
+        move(East)
 
 
 def diagonal_move_do(side_lenth, d1, d2, do):
