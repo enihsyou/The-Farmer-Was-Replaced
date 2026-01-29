@@ -1,3 +1,4 @@
+from __builtins__ import can_harvest
 s = get_world_size()
 N = 2000000000
 W = 0.75
@@ -62,16 +63,14 @@ def plant_bush_around():
 
 
 def harvest_poly_hay():
-    while get_water() < W:
+    while get_water() < W and num_items(Items.Water) > 32:
         use_item(Items.Water)
-    while not can_harvest():
-        if use_item(Items.Fertilizer):
-            use_item(Items.Weird_Substance)
-    harvest()
-    c, _ = get_companion()
-    while c != Entities.Bush:
+    if can_harvest():
         harvest()
         c, _ = get_companion()
+        while c != Entities.Bush:
+            harvest()
+            c, _ = get_companion()
     return num_items(Items.Hay) < N
 
 
@@ -88,23 +87,54 @@ def work_drone_task():
             break
 
 
-def spawn_drone_task2():
-    for _ in range(3):
-        spawn_drone(work_drone_task)
-        for _ in range(8):
-            move(East)
-    work_drone_task()
+def diagonal_move_do(side_lenth, d1, d2, do):
+    def fn():
+        for _ in range(side_lenth):
+            move(d1)
+            move(d2)
+        do()
+
+    return fn
+
+
+DIRS = [North, East, South, West]
 
 
 def spawn_drone_task1():
-    for _ in range(7):
-        spawn_drone(spawn_drone_task2)
-        for _ in range(4):
-            move(East)
-        for _ in range(4):
-            move(North)
-    spawn_drone_task2()
+    for i in range(len(DIRS)):
+        d1 = DIRS[i]
+        d2 = DIRS[(i + 1) % len(DIRS)]
+        spawn_drone(diagonal_move_do(8, d1, d2, spawn_drone_task2(i)))
+        spawn_drone(diagonal_move_do(4, d1, d1, work_drone_task))
+    work_drone_task()
+
+
+def spawn_drone_task2(d):
+    def fn():
+        for i in range(len(DIRS)):
+            d1 = DIRS[i]
+            d2 = DIRS[(i + 1) % len(DIRS)]
+            spawn_drone(diagonal_move_do(4, d1, d2, spawn_drone_task3(i)))
+        work_drone_task()
+
+    return fn
+
+
+def spawn_drone_task3(d):
+    def fn():
+        x, y = get_pos_x(), get_pos_y()
+        if x == border[0] or y == border[1]:
+            spawn_drone(diagonal_move_do(4, North, East, work_drone_task))
+        work_drone_task()
+
+    return fn
 
 
 clear()
+# debug purpose: move to center
+# for _ in range(12):
+#     move(North)
+#     move(East)
+center = (get_pos_x(), get_pos_y())
+border = (center[0] + 12, center[1] + 12)
 spawn_drone_task1()
