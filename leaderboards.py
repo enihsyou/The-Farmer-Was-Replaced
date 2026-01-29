@@ -30,6 +30,10 @@ def run_leaderboard_sunflowers_single():
     leaderboard_run(Leaderboards.Sunflowers_Single, "sunflowers_single", 40960)
 
 
+def run_leaderboard_maze_single():
+    leaderboard_run(Leaderboards.Maze_Single, "maze_single", 40960)
+
+
 def simulate_leaderboard(filename, sim_items, sim_globals):
     runtimes = []
     runtimes_sum = 0
@@ -57,4 +61,4 @@ def simulate_leaderboard_sunflowers_single():
 
 
 if __name__ == "__main__":
-    run_leaderboard_hay()
+    run_leaderboard_maze_single()

@@ -7,7 +7,7 @@ OFFSETS = {
     East: (1, 0),
     West: (-1, 0),
 }
-OPPOSITE = {
+OPPOSITES = {
     North: South,
     South: North,
     East: West,
@@ -32,7 +32,7 @@ def visit_neighbors_creator(dirs):
             if i < 3:
                 r(i + 1)
             # backtrack
-            move(OPPOSITE[d])
+            move(OPPOSITES[d])
 
     return r
 
@@ -104,13 +104,13 @@ def diagonal_move_do(side_lenth, d1, d2, do):
     return fn
 
 
-DIRS = [North, East, South, West]
+DIRECTIONS = [North, East, South, West]
 
 
 def spawn_drone_task1():
-    for i in range(len(DIRS)):
-        d1 = DIRS[i]
-        d2 = DIRS[(i + 1) % len(DIRS)]
+    for i in range(len(DIRECTIONS)):
+        d1 = DIRECTIONS[i]
+        d2 = DIRECTIONS[(i + 1) % len(DIRECTIONS)]
         spawn_drone(diagonal_move_do(8, d1, d2, spawn_drone_task2(i)))
         spawn_drone(diagonal_move_do(4, d1, d1, work_drone_task))
     work_drone_task()
@@ -118,9 +118,9 @@ def spawn_drone_task1():
 
 def spawn_drone_task2(d):
     def fn():
-        for i in range(len(DIRS)):
-            d1 = DIRS[i]
-            d2 = DIRS[(i + 1) % len(DIRS)]
+        for i in range(len(DIRECTIONS)):
+            d1 = DIRECTIONS[i]
+            d2 = DIRECTIONS[(i + 1) % len(DIRECTIONS)]
             spawn_drone(diagonal_move_do(4, d1, d2, spawn_drone_task3(i)))
         work_drone_task()
 
