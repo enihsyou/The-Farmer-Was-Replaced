@@ -23,5 +23,5 @@ Game version: 1.0
 | Sunflowers Single |    5:05.235 |          14 | 2026-01-26 |
 | Dinosaur          |   13:13.941 |          16 | 2026-01-17 |
 | Maze              |           - |           - |          - |
-| Maze Single       |    3:39.405 |         108 | 2026-01-29 |
+| Maze Single       |    2:22.838 |          23 | 2026-01-30 |
 | Fastest Reset     |           - |           - |          - |

@@ -1,10 +1,7 @@
-WORLD_SIZE = get_world_size()
-WORLD_IS_EVEN = WORLD_SIZE % 2 == 0
-HALF_WORLD_SIZE = WORLD_SIZE // 2
+# Reference: https://github.com/Flekay/The-Farmer-Was-Replaced/blob/main/Maze/Single%20Drone/Shared_Vector_Flow_Field.py
+s = get_world_size()
 
 INF_METRIC = 999999
-
-
 DIRECTIONS = [North, East, South, West]
 OPPOSITES = {
     North: South,
@@ -20,237 +17,136 @@ OFFSETS = {
 }
 
 
-def adjecent_coordination(cell, direction):
-    # 返回指定格子在指定方向上的邻居格子坐标，可能在地图外
-    x, y = cell
-    dx, dy = OFFSETS[direction]
-    return (x + dx, y + dy)
+AMOUNT = s * 2 ** (num_unlocked(Unlocks.Mazes) - 1)
+BASE = (s // 2, s // 2)
 
 
-def harvest_golds():
-    relocate_treasure()
+# Mapping information
+WALLS = {}
+
+
+# Helper recursive function to find walls and treasure
+def scan_maze(back=None):
     walls = set()
-    explore_unkown_dfs(walls)
-
-    while num_items(Items.Gold) < 614400:
-        if get_entity_type() == Entities.Treasure:
-            relocate_treasure()
-        if explore_known_astar(walls):
-            continue
-        if explore_unkown_dfs(walls):
-            continue
-    harvest()
-
-
-def relocate_treasure():
-    substance = get_world_size() * 2 ** (num_unlocked(Unlocks.Mazes) - 1)
-    if get_entity_type() != Entities.Treasure:
-        plant(Entities.Bush)
-    use_item(Items.Weird_Substance, substance)
-
-
-def moveable_directions(come_from):
-    dirs = []
     for dir in DIRECTIONS:
-        if dir == OPPOSITES[come_from]:
-            continue
-        if can_move(dir):
-            dirs.append(dir)
-    return dirs
+        if dir != back:
+            if move(dir):
+                dir_back = OPPOSITES[dir]
+                scan_maze(dir_back)
+                move(dir_back)
+            else:
+                walls.add(dir)
+    # 必定非空，免得后面存在性检测
+    WALLS[get_pos_x(), get_pos_y()] = walls
 
 
-def update_walls(walls):
-    pos = get_pos_x(), get_pos_y()
-    for dir in DIRECTIONS:
-        loc = (pos, dir)
-        if can_move(dir):
-            if loc in walls:
-                walls.remove(loc)
-        else:
-            walls.add(loc)
+DIST_TO_BASE = {BASE: 0}
+DIRS_TO_BASE = {BASE: None}
 
 
-def explore_unkown_dfs(walls):
-    visited = set()  # 访问过的交叉点
-    treasure = measure()
+# Helper to populate the flowfield
+def do_bfs(pos):
+    x, y = pos
 
-    def explore_direction(d):
-        def f():
-            moveable_dirs = [d]  # 记录可以前进的方向
-            move_history = []  # 移动记录
-            while len(moveable_dirs) == 1:
-                dir = moveable_dirs[0]
-                move(dir)
-                move_history.append(dir)
-                update_walls(walls)
-                if get_entity_type() == Entities.Treasure:
-                    return True
-                if get_entity_type() != Entities.Hedge:
-                    return True  # 说明程序已经结束
-                moveable_dirs = moveable_directions(dir)
-            for dir in moveable_dirs:
-                adj = adjecent_coordination((get_pos_x(), get_pos_y()), dir)
-                if adj in visited:
-                    continue
-                visited.add(adj)
-                task = explore_direction(dir)
-                if task():
-                    return True
+    # use two stacks to simulate a queue, because pop() is faster than pop(0)
+    in_stack = []
+    out_stack = [(x, y, DIST_TO_BASE[x, y])]
 
-            if measure() != treasure:
-                return False
-
-            for i in range(len(move_history) - 1, -1, -1):
-                move(OPPOSITES[move_history[i]])
-
-        return f
-
-    if get_entity_type() == Entities.Treasure:
-        relocate_treasure()
-        return True
-
-    for dir in DIRECTIONS:
-        if can_move(dir):
-            task = explore_direction(dir)
-            if task():
-                return True
-
-
-def reverse_list(l):
-    for i in range(len(l) // 2):
-        j = len(l) - 1 - i
-        l[i], l[j] = l[j], l[i]
-
-
-def metric_of_inf():
-    graph = []
-    for _ in range(WORLD_SIZE):
-        col = []
-        for _ in range(WORLD_SIZE):
-            col.append(INF_METRIC)
-        graph.append(col)
-    return graph
-
-
-def get_metric(metric, cell):
-    x, y = cell
-    return metric[x][y]
-
-
-def set_metric(metric, cell, value):
-    x, y = cell
-    metric[x][y] = value
-
-
-def reconstruct_direction(start, end):
-    # 要求两个相邻
-    sx, sy = start
-    ex, ey = end
-    if sx == ex:
-        if sy > ey:
-            return South
-        if sy < ey:
-            return North
-    if sy == ey:
-        if sx < ex:
-            return East
-        if sx > ex:
-            return West
-
-
-def reconstruct_navigation(came_from, target):
-    navigations = []
-    cell = target
-    while cell in came_from:
-        cell_parent = came_from[cell]
-        direction = reconstruct_direction(cell_parent, cell)
-        navigations.append(direction)
-        cell = cell_parent
-    reverse_list(navigations)
-    return navigations
-
-
-def is_in_map(position):
-    x, y = position
-    return 0 <= x < WORLD_SIZE and 0 <= y < WORLD_SIZE
-
-
-def shorest_navigation_maze(walls, start, target):
-    # a* search 返回从 start 到 apple 的最短路径的移动指令列表
-    def h(cell):
-        ax, ay = cell
-        tx, ty = target
-        dx = abs(ax - tx)
-        dy = abs(ay - ty)
-        return dx + dy
-
-    came_from = {}
-    g_score = metric_of_inf()
-    set_metric(g_score, start, 0)
-    f_score = metric_of_inf()
-    set_metric(f_score, start, h(start))
-
-    queue_keys = []
-    queue_data = {}
-
-    def enqueue(cell, priority):
-        if priority in queue_keys:
-            queue_data[priority].append(cell)
-        else:
-            queue_keys.append(priority)
-            queue_data[priority] = [cell]
+    def enqueue(item):
+        in_stack.append(item)
 
     def dequeue():
-        min_priority = min(queue_keys)
-        min_cells = queue_data[min_priority]
-        if len(min_cells) == 1:
-            queue_keys.remove(min_priority)
-        return min_cells.pop()
+        if not out_stack:
+            while in_stack:
+                out_stack.append(in_stack.pop())
+        return out_stack.pop()
 
-    visited = set()
-    visited.add(start)
-    enqueue(start, 0)
-    while queue_keys:
-        current = dequeue()
-        if current == target:
-            return reconstruct_navigation(came_from, target)
-
-        current_score = get_metric(g_score, current)
-        cost_to_adj = current_score + 1
-        for direction in DIRECTIONS:
-            if (current, direction) in walls:
+    while in_stack or out_stack:
+        old_x, old_y, dist = dequeue()
+        for dir in DIRECTIONS:
+            if dir in WALLS[old_x, old_y]:
                 continue
-            adj = adjecent_coordination(current, direction)
-            if not is_in_map(adj):
-                continue
-            if adj in visited:
-                continue
-            visited.add(adj)
-            if cost_to_adj < get_metric(g_score, adj):
-                came_from[adj] = current
-                set_metric(g_score, adj, cost_to_adj)
-                set_metric(f_score, adj, cost_to_adj + h(adj))
-                enqueue(adj, get_metric(f_score, adj))
+            dx, dy = OFFSETS[dir]
+            nx, ny = old_x + dx, old_y + dy
+            new_pos = (nx, ny)
+            # take out distance remembered
+            if new_pos in DIST_TO_BASE:
+                dist_old = DIST_TO_BASE[new_pos]
+            else:
+                dist_old = INF_METRIC
+            # compare to current optimal distance
+            dist_new = dist + 1
+            # update if better
+            if dist_new < dist_old:
+                DIST_TO_BASE[new_pos] = dist_new
+                DIRS_TO_BASE[new_pos] = OPPOSITES[dir]
+                enqueue((nx, ny, dist_new))
 
-    return []
+
+# Helper to compute the path to a base
+def get_path_to_base(pos):
+    path = []
+    x, y = pos
+    dir = DIRS_TO_BASE[x, y]
+    while dir:
+        path.append(dir)
+        dx, dy = OFFSETS[dir]
+        x, y = x + dx, y + dy
+        dir = DIRS_TO_BASE[x, y]
+    return path
 
 
-def explore_known_astar(walls):
-    treasure = measure()
-    current = get_pos_x(), get_pos_y()
-    path = shorest_navigation_maze(walls, current, treasure)
-    if path:
-        c = 0
-        for dir in path:
-            if not move(dir):
-                return False
-            if measure() != treasure:
-                return False
-            update_walls(walls)
-            c += 1
-            if c % 100 == 99:
-                single_drone(walls)
-        return True
-    return False
+# Helper to look for missing walls
+def move_and_break_walls(step):
+    move(step)
+    old_pos = (get_pos_x(), get_pos_y())
+    for dir in list(WALLS[old_pos]):
+        if can_move(dir):
+            ox, oy = old_pos
+            dx, dy = OFFSETS[dir]
+            new_pos = (ox + dx, oy + dy)
+            # Remove both sides of the wall
+            WALLS[old_pos].remove(dir)
+            WALLS[new_pos].remove(OPPOSITES[dir])
+            # Update the flowfield
+            do_bfs(old_pos)
+            do_bfs(new_pos)
 
-harvest_golds()
+
+# move to BASE
+for _ in range(s // 2):
+    move(East)
+    move(North)
+plant(Entities.Bush)
+use_item(Items.Weird_Substance, AMOUNT)
+
+# Map the maze
+scan_maze()
+do_bfs(BASE)
+
+for i in range(601):
+    # Compute paths from drone and goal to base
+    dpath = get_path_to_base((get_pos_x(), get_pos_y()))
+    gpath = get_path_to_base(measure())
+
+    # Recycle treasure if it's here
+    use_item(Items.Weird_Substance, AMOUNT)
+
+    # Cancel the final moves if they're the same
+    while dpath and gpath and dpath[-1] == gpath[-1]:
+        gpath.pop()
+        dpath.pop()
+    if i % 10 != 0:
+        # Only update map every 10 iterations to save time
+        for step in dpath:
+            move(step)
+        for stop in gpath[::-1]:
+            move(OPPOSITES[stop])
+    else:
+        # Follow the drone path forward
+        for step in dpath:
+            move_and_break_walls(step)
+        # Follow the goal path backward
+        for step in gpath[::-1]:
+            move_and_break_walls(OPPOSITES[step])
+harvest()
