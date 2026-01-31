@@ -10,6 +10,10 @@ def run_leaderboard_hay_single():
     leaderboard_run(Leaderboards.Hay_Single, "hay_single", 40960)
 
 
+def run_leaderboard_wood():
+    leaderboard_run(Leaderboards.Wood, "wood", 40960)
+
+
 def run_leaderboard_wood_single():
     leaderboard_run(Leaderboards.Wood_Single, "wood_single", 40960)
 
@@ -69,4 +73,4 @@ def simulate_leaderboard_wood_single():
 
 
 if __name__ == "__main__":
-    run_leaderboard_wood_single()
+    run_leaderboard_wood()
