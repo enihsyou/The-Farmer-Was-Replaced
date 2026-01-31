@@ -38,10 +38,11 @@ def simulate_leaderboard(filename, sim_items, sim_globals):
     runtimes = []
     runtimes_sum = 0
     for _ in range(5):
-        runtime = simulate(filename, Unlocks, sim_items, sim_globals, 0, 40960)
+        seed = random() * 10000000 // 1
+        runtime = simulate(filename, Unlocks, sim_items, sim_globals, seed, 4096)
         runtimes.append(runtime)
         runtimes_sum += runtime
-        quick_print(runtime, sim_globals)
+        quick_print(runtime)
     quick_print(
         sim_globals,
         "max",
@@ -60,5 +61,12 @@ def simulate_leaderboard_sunflowers_single():
         simulate_leaderboard("sunflowers_single", sim_items, sim_globals)
 
 
+def simulate_leaderboard_wood_single():
+    sim_items = {}
+    for water_level in range(0.10, 0.20, 0.01):
+        sim_globals = {"W": water_level}
+        simulate_leaderboard("wood_single", sim_items, sim_globals)
+
+
 if __name__ == "__main__":
-    run_leaderboard_maze_single()
+    run_leaderboard_wood_single()

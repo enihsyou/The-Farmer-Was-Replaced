@@ -1,83 +1,88 @@
-from __builtins__ import Entities, can_harvest, get_world_size, use_item, set_execution_speed
-from library import *
+def traverse_rectangle(fn, w, h):
+    fn()
+    move(North)
+    for i in range(w, 0, -2):
+        for j in range(h, 1, -1):
+            fn()
+            if j != 2:
+                move(North)
+        move(East)
+        for j in range(h, 1, -1):
+            fn()
+            if j != 2:
+                move(South)
+        if i != 2:
+            move(East)
+    move(South)
+    for _ in range(1, w):
+        fn()
+        move(West)
 
 
-def is_tree_position(position):
-    x, y = position
-    return is_even(x + y)
+def is_tree_pos(p):
+    x, y = p
+    return (x + y) % 2 == 0
 
 
-def harvest_woods(w, h):
-    def plant_and_harvest():
-        if can_harvest():
-            harvest()
-        if is_tree_position(current_position()):
-            plant(Entities.Tree)
+# 4 x 8 区域中第 0, 2 列种树
+def work_drone_task():
+    wants = {}
+
+    def on_eachcell():
+        t = (get_pos_x(), get_pos_y())
+
+        if get_water() < 0.15:
+            # 访问间隔挺长的，不需要太多水
+            use_item(Items.Water)
+
+        if t in wants:
+            # 满足当前位置的种植需求
+            c = wants.pop(t)
+            if get_entity_type() != c:
+                harvest()
+                if plant(c):
+                    return
+                plant(Entities.Bush)  # may failed at Carrot with no enough resource
+            return
+
+        if is_tree_pos(t):
+            while True:
+                harvest()
+                plant(Entities.Tree)
+                c, p = get_companion()
+                if is_tree_pos(p):
+                    continue  #  和树的位置冲突
+                if p in wants and wants[p] != c:
+                    continue  # 和其他植物的请求种植的冲突
+                wants[p] = c  # 标记格子接下来要种植的作物
+                break
         else:
-            plant(Entities.Bush)
-
-    traverse_rectangle(plant_and_harvest, w, h)
-
-
-def poly_woods():
-    def plant_tree():
-        if is_tree_position(current_position()):
-            if get_ground_type() != Grounds.Soil:
-                till()
-            # if get_entity_type() == Entities.Tree:
-            #     # 确保已长成
-            #     if not can_harvest():
-            #         use_item(Items.Fertilizer) # 十字形布局不影响周边植物
-            #         use_item(Items.Fertilizer) # 抵消奇异物质
             while True:
                 harvest()
-                plant(Entities.Tree)
-                companion, pos = get_companion()  # ty: ignore
-                if not is_tree_position(pos) and companion == Entities.Grass:
-                    break
-            while get_water() < 0.75 and num_items(Items.Water) > 0:
-                use_item(Items.Water)
-        # else:
-        #     while True:
-        #         harvest()
-        #         companion, pos = get_companion()
-        #         if is_tree_position(pos) and companion == Entities.Tree:
-        #             break
-
-    move_2d_torus(zeroing_position)
-    traverse_rectangle(plant_tree, 3, 3)
-
-
-def ploy_multidrone_woods():
-    def plant_tree():
-        if get_ground_type() != Grounds.Soil:
-            till()
-        while True:
-            while True:
-                harvest()
-                plant(Entities.Tree)
-                companion, pos = get_companion()  # ty: ignore
-                x, y = pos
-                if companion == Entities.Grass:
-                    if y > 0 or not is_tree_position(pos):
+                plant(Entities.Bush)
+                c, p = get_companion()
+                if is_tree_pos(p):
+                    if c == Entities.Tree:
                         break
-            while get_water() < 0.75 and num_items(Items.Water) > 0:
-                use_item(Items.Water)
-            use_time = 0
-            while not can_harvest():
-                use_item(Items.Fertilizer)
-                use_time = 1
-            if use_time % 2 == 1:
-                use_item(Items.Weird_Substance)
+                    continue  #  和树的位置冲突
+                if p in wants and wants[p] != c:
+                    continue  # 和其他植物的请求种植的冲突
+                wants[p] = c  # 标记格子接下来要种植的作物
+                break
 
-    def spawn_task():
-        if is_tree_position(current_position()):
-            spawn_drone(plant_tree)
+    def first_round():
+        till()
+        on_eachcell()
 
-    move_2d_torus(zeroing_position)
-    traverse_rectangle(spawn_task, get_world_size(), 1)
+    def while_round():
+        on_eachcell()
+        return num_items(Items.Wood) >= 500000000
+
+    traverse_rectangle(first_round, 4, 8)
+    while True:
+        traverse_rectangle(while_round, 4, 8)
 
 
-if __name__ == "__main__":
-    clear()
-    ploy_multidrone_woods()
+clear()
+set_world_size(8)
+work_drone_task()

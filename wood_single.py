@@ -1,59 +1,56 @@
 # set_world_size(8)
 s = get_world_size()
-m = s - 1
-n = s - 2
+
+W = 0.16
 
 
-def traverse_rectangle(fn):
+def traverse_rectangle_if(fn, w, h):
     # traverse_rectangle 针对 8 x 8 的性能优化版
     if fn():
         return False
     move(North)
-    for i in range(0, s, 2):
-        for j in range(m):
+    for i in range(w, 0, -2):
+        for j in range(h, 1, -1):
             if fn():
                 return False
-            if j != n:
+            if j != 2:
                 move(North)
         move(East)
-        for j in range(m):
+        for j in range(h, 1, -1):
             if fn():
                 return False
-            if j != n:
+            if j != 2:
                 move(South)
-        if i != n:
+        if i != 2:
             move(East)
     move(South)
-    for _ in range(m):
+    for _ in range(1, w):
         if fn():
             return False
         move(West)
 
     return True  # loop continues
 
-def traverse_rectangle_no_if(fn):
+
+def traverse_rectangle(fn, w, h):
     fn()
     move(North)
-    for i in range(0, s, 2):
-        for j in range(m):
+    for i in range(w, 0, -2):
+        for j in range(h, 1, -1):
             fn()
-            if j != n:
+            if j != 2:
                 move(North)
         move(East)
-        for j in range(m):
+        for j in range(h, 1, -1):
             fn()
-            if j != n:
+            if j != 2:
                 move(South)
-        if i != n:
+        if i != 2:
             move(East)
     move(South)
-    for _ in range(m):
+    for _ in range(1, w):
         fn()
         move(West)
-
-
-
-wants = {}  # 记录种植需求
 
 
 def is_tree_pos(p):
@@ -61,62 +58,55 @@ def is_tree_pos(p):
     return (x + y) % 2 == 0
 
 
-def on_eachcell():
-    t = (get_pos_x(), get_pos_y())
+def work_drone_task():
+    wants = {}  # 记录种植需求
 
-    if get_water() < 0.15:
-        # 访问间隔挺长的，不需要太多水
-        use_item(Items.Water)
+    def on_eachcell():
+        t = (get_pos_x(), get_pos_y())
 
-    if t in wants:
         # 满足当前位置的种植需求
-        c = wants.pop(t)
-        if get_entity_type() != c:
-            harvest()
-            if plant(c):
-                return
-            plant(Entities.Bush) # may failed at Carrot with no enough resource
+        if t in wants:
+            c = wants.pop(t)
+            if get_entity_type() != c:
+                harvest()
+                # may failed at Carrot with no enough resource
+                _ = plant(c) or plant(Entities.Bush)
+            return
 
-        return
+        # 在树的位置种树，其他位置不管
+        if is_tree_pos(t):
+            # 只在树的位置浇水
+            if get_water() < W:
+                # 访问间隔挺长的，不需要太多水
+                use_item(Items.Water)
+            while True:
+                harvest()
+                plant(Entities.Tree)
+                c, p = get_companion()
+                if is_tree_pos(p):
+                    continue  #  和树的位置冲突
+                if p in wants and wants[p] != c:
+                    continue  # 和其他植物的请求种植的冲突
+                wants[p] = c  # 标记格子接下来要种植的作物
+                break
+            return
 
-    if is_tree_pos(t):
-        while True:
-            harvest()
-            plant(Entities.Tree)
-            c, p = get_companion()
-            if is_tree_pos(p):
-                continue  #  和树的位置冲突
-            if p in wants and wants[p] != c:
-                continue  # 和其他植物的请求种植的冲突
-            wants[p] = c  # 标记格子接下来要种植的作物
-            break
-    else:
-        while True:
-            harvest()
-            plant(Entities.Bush)
-            c, p = get_companion()
-            if is_tree_pos(p):
-                if c == Entities.Tree:
-                    break
-                continue  #  和树的位置冲突
-            if p in wants and wants[p] != c:
-                continue  # 和其他植物的请求种植的冲突
-            wants[p] = c  # 标记格子接下来要种植的作物
-            break
+    def first_round():
+        till()
+        on_eachcell()
 
+    def range_round():
+        on_eachcell()
 
-def first_round():
-    till()
-    on_eachcell()
+    def while_round():
+        on_eachcell()
+        return num_items(Items.Wood) >= 500000000
 
-
-def while_round():
-    on_eachcell()
-    return num_items(Items.Wood) >= 500000000
+    traverse_rectangle(first_round, s, s)
+    for _ in range(34):  # 需要约 37 轮能够收集到足够的木头
+        traverse_rectangle(range_round, s, s)
+    while traverse_rectangle_if(while_round, s, s):
+        continue
 
 
-traverse_rectangle_no_if(first_round)
-for _ in range(34): # 需要约 37 轮能够收集到足够的木头
-    traverse_rectangle_no_if(on_eachcell)
-while traverse_rectangle(while_round):
-    continue
+work_drone_task()
