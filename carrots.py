@@ -1,4 +1,4 @@
-W = 0.35
+W = 0.15
 
 
 def traverse_rectangle(fn, w, h):
@@ -51,6 +51,8 @@ def traverse_rectangle_if(fn, w, h):
 
 def work_drone_task():
     wants = {}
+    x_lower, y_lower = get_pos_x(), get_pos_y()
+    x_upper, y_upper = x_lower + 4, y_lower + 8
 
     def on_eachcell():
         t = (get_pos_x(), get_pos_y())
@@ -69,17 +71,16 @@ def work_drone_task():
             harvest()
             plant(Entities.Carrot)
             c, p = get_companion()
-            if p in wants and wants[p] != c:
-                continue  # 和其他植物的请求种植的冲突
-            wants[p] = c  # 标记格子接下来要种植的作物
-            break
+            x, y = p
+            if x_lower <= x < x_upper and y_lower <= y < y_upper:
+                if p in wants and wants[p] != c:
+                    continue  # 和其他植物的请求种植的冲突
+                wants[p] = c  # 标记格子接下来要种植的作物
+                break
         return
 
     def first_round():
         till()
-        on_eachcell()
-
-    def range_round():
         on_eachcell()
 
     def while_round():
@@ -87,8 +88,6 @@ def work_drone_task():
         return num_items(Items.Carrot) >= 2000000000
 
     traverse_rectangle(first_round, 4, 8)
-    for _ in range(22):
-        traverse_rectangle(range_round, 4, 8)
     while traverse_rectangle_if(while_round, 4, 8):
         continue
 
