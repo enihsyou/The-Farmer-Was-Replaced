@@ -30,6 +30,10 @@ def run_leaderboard_cactus_single():
     leaderboard_run(Leaderboards.Cactus_Single, "cactus_single", 40960)
 
 
+def run_leaderboard_pumpkins():
+    leaderboard_run(Leaderboards.Pumpkins, "pumpkins", 40960)
+
+
 def run_leaderboard_pumpkins_single():
     leaderboard_run(Leaderboards.Pumpkins_Single, "pumpkins_single", 40960)
 
@@ -77,4 +81,4 @@ def simulate_leaderboard_wood_single():
 
 
 if __name__ == "__main__":
-    run_leaderboard_carrots()
+    run_leaderboard_pumpkins()

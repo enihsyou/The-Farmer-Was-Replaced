@@ -15,7 +15,7 @@ Game version: 1.0
 | Wood Single       |    5:18.492 |           9 | 2026-01-31 |
 | Carrots           |    3:50.222 |           5 | 2026-02-16 |
 | Carrots Single    |    4:09.969 |          10 | 2026-01-19 |
-| Pumpkins          |           - |           - |          - |
+| Pumpkins          |    6:25.246 |          12 | 2026-02-16 |
 | Pumpkins Single   |    7:29.750 |           8 | 2026-01-24 |
 | Cactus            |           - |           - |          - |
 | Cactus Single     |      20.224 |          17 | 2026-01-24 |
