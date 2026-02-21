@@ -1,5 +1,3 @@
-from __builtins__ import Entities, harvest
-
 s = get_world_size()
 m = s - 1
 W = 0.75
@@ -30,12 +28,6 @@ def traverse_rectangle(fn, w, h, mirror):
     move(back)
 
 
-def is_fully_grown():
-    # 在右半 start 位置检测和左边拥有相同的 id
-    v = measure()
-    return v != None and v == measure(West)
-
-
 def work_drone_task():
     start = (get_pos_x(), get_pos_y())
     unripes = []
@@ -53,16 +45,26 @@ def work_drone_task():
             if get_water() < W:
                 use_item(Items.Water)
             if can_harvest():
+                # 浇水过程中可能成熟了
                 return
-            use_item(Items.Fertilizer)
+            if not unripes and measure():
+                # 只剩这一个仍在生长
+                use_item(Items.Fertilizer)
+            # 长成了但是坏南瓜
             plant(Entities.Pumpkin)
+            # 长成了且是好南瓜
             if can_harvest():
                 return
             unripes.append((get_pos_x(), get_pos_y()))
 
     def cycle_pumpkin():
         while unripes:
-            move_to(unripes.pop(0))
+            last_d = move_to_without_last_move(unripes.pop(0))
+            if last_d:
+                # 移动之前就能判断是否成熟
+                if measure() == measure(last_d):
+                    continue
+                move(last_d)
             check_pumpkin()
 
     def right_side():
@@ -90,25 +92,52 @@ def work_drone_task():
 def move_to(pos):
     cx, cy = get_pos_x(), get_pos_y()
     tx, ty = pos
-    s = 32
 
-    dx_east = (tx - cx) % s
-    dx_west = s - dx_east
-    if dx_east < dx_west:
-        for _ in range(dx_east):
-            move(East)
+    dx = abs(tx - cx)
+    if cx < tx:
+        dir_x = East
     else:
-        for _ in range(dx_west):
-            move(West)
+        dir_x = West
+    for _ in range(dx):
+        move(dir_x)
 
-    dy_north = (ty - cy) % s
-    dy_south = s - dy_north
-    if dy_north < dy_south:
-        for _ in range(dy_north):
-            move(North)
+    dy = abs(ty - cy)
+    if cy < ty:
+        dir_y = North
     else:
-        for _ in range(dy_south):
-            move(South)
+        dir_y = South
+    for _ in range(dy):
+        move(dir_y)
+
+
+def move_to_without_last_move(pos):
+    cx, cy = get_pos_x(), get_pos_y()
+    tx, ty = pos
+
+    dx = abs(tx - cx)
+    dy = abs(ty - cy)
+    if dx == 0 and dy == 0:
+        return None
+    if cx < tx:
+        dir_x = East
+    else:
+        dir_x = West
+    if cy < ty:
+        dir_y = North
+    else:
+        dir_y = South
+
+    if dy > 0:
+        dy -= 1
+        return_d = dir_y
+    elif dx > 0:
+        dx -= 1
+        return_d = dir_x
+    for _ in range(dx):
+        move(dir_x)
+    for _ in range(dy):
+        move(dir_y)
+    return return_d
 
 
 def straight_move_do(side_length, d, do):
