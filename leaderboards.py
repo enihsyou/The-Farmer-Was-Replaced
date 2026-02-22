@@ -55,7 +55,7 @@ def simulate_leaderboard(filename, sim_items, sim_globals):
     runtimes_sum = 0
     for _ in range(5):
         seed = random() * 10000000 // 1
-        runtime = simulate(filename, Unlocks, sim_items, sim_globals, seed, 4096)
+        runtime = simulate(filename, Unlocks, sim_items, sim_globals, seed, 4)
         runtimes.append(runtime)
         runtimes_sum += runtime
         quick_print(runtime)
@@ -82,6 +82,11 @@ def simulate_leaderboard_wood_single():
     for water_level in range(0.10, 0.20, 0.01):
         sim_globals = {"W": water_level}
         simulate_leaderboard("wood_single", sim_items, sim_globals)
+
+def simulate_leaderboard_cactus():
+    sim_items = {Items.Pumpkin: 1000000000}
+    sim_globals = {}
+    simulate_leaderboard("cactus", sim_items, sim_globals)
 
 
 if __name__ == "__main__":

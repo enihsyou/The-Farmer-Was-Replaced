@@ -1,26 +1,48 @@
 s = get_world_size()
 
 
-def cocktail_forward(start, end, direction):
-    swapped = False
-    for i in range(start, end):
-        if measure() > measure(direction):  # ty: ignore
-            swap(direction)
-            swapped = True
-        if i != end - 1:
-            move(direction)
-    return swapped
+def insertion_sort_vertical():
+    while True:
+        if get_pos_y() > 0:
+            if measure() < measure(South):  # ty: ignore
+                swap(South)
+                move(South)
+                continue
+        break
 
 
-def cocktail_backward(start, end, direction):
-    swapped = False
-    for i in range(end - 1, start - 1, -1):
-        if measure() < measure(direction):  # ty: ignore
-            swap(direction)
-            swapped = True
-        if i != start:
-            move(direction)
-    return swapped
+def insertion_sort_horizontal():
+    while True:
+        if get_pos_x() > 0:
+            if measure() < measure(West):  # ty: ignore
+                swap(West)
+                move(West)
+                continue
+        break
+
+
+def move_to_x(tx):
+    cx = get_pos_x()
+    dx_east = (tx - cx) % s
+    dx_west = s - dx_east
+    if dx_east < dx_west:
+        for _ in range(dx_east):
+            move(East)
+    else:
+        for _ in range(dx_west):
+            move(West)
+
+
+def move_to_y(ty):
+    cy = get_pos_y()
+    dy_north = (ty - cy) % s
+    dy_south = s - dy_north
+    if dy_north < dy_south:
+        for _ in range(dy_north):
+            move(North)
+    else:
+        for _ in range(dy_south):
+            move(South)
 
 
 def straight_move_do(side_length, d, do):
@@ -33,46 +55,47 @@ def straight_move_do(side_length, d, do):
 
 
 def horizontal_work():
-    forked = spawn_drone(straight_move_do(1, East, horizontal_work))
-    for _ in range(s):
+    all_dispatched = False
+    other_finished = False
+    for y in range(s):
+        all_dispatched = all_dispatched or num_drones() == s
+        other_finished = other_finished or num_drones() < s
+        move_to_y(y)
         till()
         plant(Entities.Cactus)
-        if get_pos_y() > 0 and measure() < measure(South):  # ty: ignore
-            swap(South)
-        move(North)
-
-    l, r = 0, s - 1
-    while True:
-        swapped = cocktail_forward(l, r, North)
-        if not swapped:
-            break
-        r -= 1
-        swapped = cocktail_backward(l, r, South)
-        if not swapped:
-            break
-        l += 1
-
-    if forked:
-        wait_for(forked)
+        if all_dispatched and other_finished:
+            if spawn_drone(insertion_sort_vertical):
+                continue
+        insertion_sort_vertical()
 
 
 def vertical_work():
-    forked = spawn_drone(straight_move_do(1, North, vertical_work))
-    l, r = 0, s - 1
-    while True:
-        swapped = cocktail_forward(l, r, East)
-        if not swapped:
-            break
-        r -= 1
-        swapped = cocktail_backward(l, r, West)
-        if not swapped:
-            break
-        l += 1
-
-    if forked:
-        wait_for(forked)
+    all_dispatched = False
+    other_finished = False
+    for x in range(s):
+        all_dispatched = all_dispatched or num_drones() == s
+        other_finished = other_finished or num_drones() < s
+        move_to_x(x)
+        if all_dispatched and other_finished:
+            if spawn_drone(insertion_sort_horizontal):
+                continue
+        insertion_sort_horizontal()
 
 
+for i in range(1, s // 2):
+    spawn_drone(straight_move_do(i, East, horizontal_work))
+for i in range(1, s // 2 + 1):
+    spawn_drone(straight_move_do(i, West, horizontal_work))
 horizontal_work()
+while num_drones() != 1:
+    pass
+
+for i in range(1, s // 2):
+    spawn_drone(straight_move_do(i, North, vertical_work))
+for i in range(1, s // 2 + 1):
+    spawn_drone(straight_move_do(i, South, vertical_work))
 vertical_work()
+while num_drones() != 1:
+    pass
+
 harvest()
