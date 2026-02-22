@@ -1,4 +1,4 @@
-# set_world_size(8)
+set_world_size(8)
 s = get_world_size()
 m = s - 1
 
