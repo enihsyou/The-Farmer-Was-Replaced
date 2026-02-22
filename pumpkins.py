@@ -1,7 +1,7 @@
 s = get_world_size()
 m = s - 1
-W = 0.70
-B = 3
+W = 0.80
+B = 5.5
 
 
 def traverse_rectangle(fn, w, h, mirror):
@@ -80,33 +80,43 @@ def seven_loop_part_cww(fn):
 
 def work_drone_task(size):
     start = (get_pos_x(), get_pos_y())
-    unripes = []
-    plant_times = {}
 
-    def plant_pumpkin():
-        if get_ground_type() != Grounds.Soil:
-            till()
+    # use two stacks to simulate a queue, because pop() is faster than pop(0)
+    unripes_in_stack = []
+    unripes_out_stack = []
+
+    def dequeue():
+        if not unripes_out_stack:
+            while unripes_in_stack:
+                unripes_out_stack.append(unripes_in_stack.pop())
+        return unripes_out_stack.pop()
+
+    def plant_pumpkin_no_till():
         plant(Entities.Pumpkin)
-        plant_times[(get_pos_x(), get_pos_y())] = 1
+
+    def plant_pumpkin_with_till():
+        till()
+        plant_pumpkin_no_till()
+
+    plant_pumpkin = plant_pumpkin_with_till
 
     def check_pumpkin():
         if can_harvest():
             return
-        pos = (get_pos_x(), get_pos_y())
-        if plant(Entities.Pumpkin):
-            plant_times[pos] += 1
-        if get_water() < W:
-            use_item(Items.Water)
-        if plant_times[pos] > B:
-            if use_item(Items.Fertilizer) and can_harvest():
-                return
+        plant(Entities.Pumpkin)
+        if get_time() - start_time > B:
+            use_item(Items.Fertilizer)
         if can_harvest():
             return
-        unripes.append(pos)
+        if get_water() < W:
+            use_item(Items.Water)
+        if can_harvest():
+            return
+        unripes_in_stack.append((get_pos_x(), get_pos_y()))
 
     def cycle_pumpkin():
-        while unripes:
-            last_d = move_to_without_last_move(unripes.pop(0))
+        while unripes_in_stack or unripes_out_stack:
+            last_d = move_to_without_last_move(dequeue())
             if last_d:
                 # 移动之前就能判断是否成熟
                 if measure() == measure(last_d):
@@ -168,9 +178,11 @@ def work_drone_task(size):
     if size == 8:
         while_round = while_round_8
     while num_items(Items.Pumpkin) < 200000000:
+        start_time = get_time()
         while_round()
-        unripes = []
-        plant_times = {}
+        unripes_in_stack = []
+        unripes_out_stack = []
+        plant_pumpkin = plant_pumpkin_no_till
 
 
 def move_to(pos):
@@ -242,19 +254,18 @@ drones = {
     (28, 0): 6,
     (3, 8): 8,
     (12, 12): 7,
-    (19, 20): 7,
-    (20, 12): 7,
+    (19, 19): 7,
+    (19, 9): 6,
     (11, 17): 6,
-    (27, 15): 8,
-    (28, 10): 7,
+    (27, 16): 8,
+    (28, 11): 7,
     (3, 17): 8,
     (2, 26): 6,
     (11, 24): 8,
-    (20, 28): 7,
-    (28, 28): 7,
+    (20, 24): 8,
+    (28, 26): 6,
 }
 
-clear()
 for pos in drones:
     size = drones[pos]
 
