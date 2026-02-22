@@ -20,6 +20,8 @@ def insertion_sort_horizontal():
                 continue
         break
 
+    if num_drones() == 1:
+        harvest()
 
 def move_to_x(tx):
     cx = get_pos_x()
@@ -81,6 +83,9 @@ def vertical_work():
                 continue
         insertion_sort_horizontal()
 
+    if num_drones() == 1:
+        harvest()
+
 
 for i in range(1, s // 2):
     spawn_drone(straight_move_do(i, East, horizontal_work))
@@ -95,7 +100,3 @@ for i in range(1, s // 2):
 for i in range(1, s // 2 + 1):
     spawn_drone(straight_move_do(i, South, vertical_work))
 vertical_work()
-while num_drones() != 1:
-    pass
-
-harvest()
