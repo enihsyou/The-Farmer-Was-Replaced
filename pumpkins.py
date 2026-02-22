@@ -1,6 +1,7 @@
 s = get_world_size()
 m = s - 1
-W = 0.75
+W = 0.70
+B = 3
 
 
 def traverse_rectangle(fn, w, h, mirror):
@@ -28,34 +29,80 @@ def traverse_rectangle(fn, w, h, mirror):
     move(back)
 
 
-def work_drone_task():
+def traverse_spiral(fn, w, h, cww):
+    if cww:
+        pair_even = (East, South)
+        pair_odd = (West, North)
+    else:
+        pair_even = (West, North)
+        pair_odd = (East, South)
+    fn()
+    i = 0
+    while True:
+        if not (w and h):
+            break
+        if i % 2:
+            dir_x, dir_y = pair_even
+        else:
+            dir_x, dir_y = pair_odd
+        for _ in range(w):
+            move(dir_x)
+            fn()
+        for _ in range(h):
+            move(dir_y)
+            fn()
+        w -= 1
+        h -= 1
+        i += 1
+
+
+def seven_loop_part_cw(fn):
+    for _ in range(2):
+        move(North)
+        fn()
+    move(North)
+    traverse_spiral(fn, 3, 6, False)
+    for _ in range(2):
+        move(West)
+        move(North)
+
+
+def seven_loop_part_cww(fn):
+    for _ in range(2):
+        move(South)
+        fn()
+    move(South)
+    traverse_spiral(fn, 3, 6, True)
+    for _ in range(2):
+        move(East)
+        move(South)
+
+
+def work_drone_task(size):
     start = (get_pos_x(), get_pos_y())
     unripes = []
+    plant_times = {}
 
     def plant_pumpkin():
         if get_ground_type() != Grounds.Soil:
             till()
         plant(Entities.Pumpkin)
+        plant_times[(get_pos_x(), get_pos_y())] = 1
 
     def check_pumpkin():
-        if (
-            plant(Entities.Pumpkin)  # dead pumpkin
-            or not can_harvest()  # still growing
-        ):
-            if get_water() < W:
-                use_item(Items.Water)
-            if can_harvest():
-                # 浇水过程中可能成熟了
+        if can_harvest():
+            return
+        pos = (get_pos_x(), get_pos_y())
+        if plant(Entities.Pumpkin):
+            plant_times[pos] += 1
+        if get_water() < W:
+            use_item(Items.Water)
+        if plant_times[pos] > B:
+            if use_item(Items.Fertilizer) and can_harvest():
                 return
-            if not unripes and measure():
-                # 只剩这一个仍在生长
-                use_item(Items.Fertilizer)
-            # 长成了但是坏南瓜
-            plant(Entities.Pumpkin)
-            # 长成了且是好南瓜
-            if can_harvest():
-                return
-            unripes.append((get_pos_x(), get_pos_y()))
+        if can_harvest():
+            return
+        unripes.append(pos)
 
     def cycle_pumpkin():
         while unripes:
@@ -67,47 +114,86 @@ def work_drone_task():
                 move(last_d)
             check_pumpkin()
 
-    def right_side():
-        traverse_rectangle(plant_pumpkin, 3, 6, False)
-        traverse_rectangle(check_pumpkin, 3, 6, False)
-        cycle_pumpkin()
+    def one_side_n(size, mirror):
+        size_2 = size * 2
 
-    def left_side(right_drone):
-        traverse_rectangle(plant_pumpkin, 3, 6, True)
-        traverse_rectangle(check_pumpkin, 3, 6, True)
-        cycle_pumpkin()
+        def fn():
+            traverse_rectangle(plant_pumpkin, size, size_2, mirror)
+            traverse_rectangle(check_pumpkin, size, size_2, mirror)
+            cycle_pumpkin()
+
+        return fn
+
+    def wait_merge(right_drone):
         move_to(start)
         wait_for(right_drone)
         harvest()
 
-    def while_round():
-        left_side(spawn_drone(straight_move_do(1, East, right_side)))
-        unripes = []
-        return num_items(Items.Pumpkin) < 200000000
+    def while_round_6():
+        left_side = one_side_n(3, True)
+        right_side = one_side_n(3, False)
+        right_drone = spawn_drone(straight_move_do(1, East, right_side))
+        left_side()
+        wait_merge(right_drone)
 
-    while while_round():
-        continue
+    def while_round_8():
+        left_side = one_side_n(4, True)
+        right_side = one_side_n(4, False)
+        right_drone = spawn_drone(straight_move_do(1, East, right_side))
+        left_side()
+        wait_merge(right_drone)
+
+    def cw_side():
+        plant_pumpkin()
+        check_pumpkin()
+        seven_loop_part_cw(plant_pumpkin)
+        seven_loop_part_cw(check_pumpkin)
+        cycle_pumpkin()
+
+    def cww_side(cw_drone):
+        seven_loop_part_cww(plant_pumpkin)
+        seven_loop_part_cww(check_pumpkin)
+        cycle_pumpkin()
+        wait_for(cw_drone)
+        harvest()
+
+    def while_round_7():
+        cww_side(spawn_drone(cw_side))
+        move_to(start)
+
+    if size == 6:
+        while_round = while_round_6
+    if size == 7:
+        while_round = while_round_7
+    if size == 8:
+        while_round = while_round_8
+    while num_items(Items.Pumpkin) < 200000000:
+        while_round()
+        unripes = []
+        plant_times = {}
 
 
 def move_to(pos):
     cx, cy = get_pos_x(), get_pos_y()
     tx, ty = pos
 
-    dx = abs(tx - cx)
-    if cx < tx:
-        dir_x = East
+    dx_east = (tx - cx) % s
+    dx_west = s - dx_east
+    if dx_east < dx_west:
+        for _ in range(dx_east):
+            move(East)
     else:
-        dir_x = West
-    for _ in range(dx):
-        move(dir_x)
+        for _ in range(dx_west):
+            move(West)
 
-    dy = abs(ty - cy)
-    if cy < ty:
-        dir_y = North
+    dy_north = (ty - cy) % s
+    dy_south = s - dy_north
+    if dy_north < dy_south:
+        for _ in range(dy_north):
+            move(North)
     else:
-        dir_y = South
-    for _ in range(dy):
-        move(dir_y)
+        for _ in range(dy_south):
+            move(South)
 
 
 def move_to_without_last_move(pos):
@@ -149,24 +235,36 @@ def straight_move_do(side_length, d, do):
     return fn
 
 
-def spawn_drone_task1(w, h):
-    def fn():
-        if w > 1:
-            spawn_drone(straight_move_do(8, East, spawn_drone_task1(w - 1, h)))
-        spawn_drone_task2(h)()
+drones = {
+    (3, 3): 7,
+    (11, 0): 8,
+    (20, 0): 8,
+    (28, 0): 6,
+    (3, 8): 8,
+    (12, 12): 7,
+    (19, 20): 7,
+    (20, 12): 7,
+    (11, 17): 6,
+    (27, 15): 8,
+    (28, 10): 7,
+    (3, 17): 8,
+    (2, 26): 6,
+    (11, 24): 8,
+    (20, 28): 7,
+    (28, 28): 7,
+}
 
-    return fn
+clear()
+for pos in drones:
+    size = drones[pos]
 
+    def spawn_drone_task(pos, size):
+        def fn():
+            move_to(pos)
+            work_drone_task(size)
 
-def spawn_drone_task2(h):
-    def fn():
-        if h > 1:
-            spawn_drone(straight_move_do(8, North, spawn_drone_task2(h - 1)))
-        work_drone_task()
+        return fn
 
-    return fn
-
-
-move(East)
-move(East)
-spawn_drone_task1(4, 4)()
+    fn = spawn_drone_task(pos, size)
+    if not spawn_drone(fn):
+        fn()
