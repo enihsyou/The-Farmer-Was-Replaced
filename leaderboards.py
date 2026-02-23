@@ -42,6 +42,10 @@ def run_leaderboard_pumpkins_single():
     leaderboard_run(Leaderboards.Pumpkins_Single, "pumpkins_single", 40960)
 
 
+def run_leaderboard_sunflowers():
+    leaderboard_run(Leaderboards.Sunflowers, "sunflowers", 40960)
+
+
 def run_leaderboard_sunflowers_single():
     leaderboard_run(Leaderboards.Sunflowers_Single, "sunflowers_single", 40960)
 
@@ -55,7 +59,7 @@ def simulate_leaderboard(filename, sim_items, sim_globals):
     runtimes_sum = 0
     for _ in range(5):
         seed = random() * 10000000 // 1
-        runtime = simulate(filename, Unlocks, sim_items, sim_globals, seed, 16)
+        runtime = simulate(filename, Unlocks, sim_items, sim_globals, seed, 4)
         runtimes.append(runtime)
         runtimes_sum += runtime
         quick_print(runtime)
@@ -83,11 +87,18 @@ def simulate_leaderboard_wood_single():
         sim_globals = {"W": water_level}
         simulate_leaderboard("wood_single", sim_items, sim_globals)
 
+
 def simulate_leaderboard_cactus():
     sim_items = {Items.Pumpkin: 1000000000}
     sim_globals = {}
     simulate_leaderboard("cactus", sim_items, sim_globals)
 
 
+def simulate_leaderboard_sunflowers():
+    sim_items = {Items.Carrot: 1000000000}
+    sim_globals = {}
+    simulate_leaderboard("sunflowers", sim_items, sim_globals)
+
+
 if __name__ == "__main__":
-    run_leaderboard_cactus()
+    run_leaderboard_sunflowers()
