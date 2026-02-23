@@ -1,8 +1,12 @@
 s = get_world_size()
+m = s - 1
 
 
 def insertion_sort_vertical():
     while True:
+        if get_pos_y() < m:
+            if measure() > measure(North):  # ty: ignore
+                swap(North)
         if get_pos_y() > 0:
             if measure() < measure(South):  # ty: ignore
                 swap(South)
@@ -13,6 +17,9 @@ def insertion_sort_vertical():
 
 def insertion_sort_horizontal():
     while True:
+        if get_pos_x() < m:
+            if measure() > measure(East):  # ty: ignore
+                swap(East)
         if get_pos_x() > 0:
             if measure() < measure(West):  # ty: ignore
                 swap(West)
@@ -20,8 +27,6 @@ def insertion_sort_horizontal():
                 continue
         break
 
-    if num_drones() == 1:
-        harvest()
 
 def move_to_x(tx):
     cx = get_pos_x()
@@ -57,46 +62,71 @@ def straight_move_do(side_length, d, do):
 
 
 def horizontal_work():
+    for _ in range(s):
+        till()
+        plant(Entities.Cactus)
+        move(North)
     all_dispatched = False
     other_finished = False
+    drones = []
     for y in range(s):
         all_dispatched = all_dispatched or num_drones() == s
         other_finished = other_finished or num_drones() < s
         move_to_y(y)
-        till()
-        plant(Entities.Cactus)
         if all_dispatched and other_finished:
-            if spawn_drone(insertion_sort_vertical):
+            drone = spawn_drone(insertion_sort_vertical)
+            if drone:
+                drones.append(drone)
                 continue
         insertion_sort_vertical()
+    for drone in drones:
+        wait_for(drone)
 
 
 def vertical_work():
     all_dispatched = False
     other_finished = False
+    drones = []
     for x in range(s):
         all_dispatched = all_dispatched or num_drones() == s
         other_finished = other_finished or num_drones() < s
         move_to_x(x)
         if all_dispatched and other_finished:
-            if spawn_drone(insertion_sort_horizontal):
+            drone = spawn_drone(insertion_sort_horizontal)
+            if drone:
+                drones.append(drone)
                 continue
         insertion_sort_horizontal()
 
-    if num_drones() == 1:
-        harvest()
+    for drone in drones:
+        wait_for(drone)
 
 
-for i in range(1, s // 2):
-    spawn_drone(straight_move_do(i, East, horizontal_work))
-for i in range(1, s // 2 + 1):
-    spawn_drone(straight_move_do(i, West, horizontal_work))
-horizontal_work()
-while num_drones() != 1:
-    pass
+def sender(dir, main, work):
+    def fn():
+        if main:
+            move(dir)
+        drones = []
+        for _ in range(1, s // 2):
+            drones.append(spawn_drone(work))
+            move(dir)
+        work()
+        for drone in drones:
+            wait_for(drone)
 
-for i in range(1, s // 2):
-    spawn_drone(straight_move_do(i, North, vertical_work))
-for i in range(1, s // 2 + 1):
-    spawn_drone(straight_move_do(i, South, vertical_work))
-vertical_work()
+    return fn
+
+
+sorter1 = sender(West, False, horizontal_work)
+sorter2 = sender(East, True, horizontal_work)
+forked = spawn_drone(sorter1)
+sorter2()
+wait_for(forked)
+
+sorter1 = sender(North, False, vertical_work)
+sorter2 = sender(South, True, vertical_work)
+forked = spawn_drone(sorter1)
+sorter2()
+wait_for(forked)
+
+harvest()

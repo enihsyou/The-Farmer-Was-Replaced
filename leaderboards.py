@@ -55,7 +55,7 @@ def simulate_leaderboard(filename, sim_items, sim_globals):
     runtimes_sum = 0
     for _ in range(5):
         seed = random() * 10000000 // 1
-        runtime = simulate(filename, Unlocks, sim_items, sim_globals, seed, 4)
+        runtime = simulate(filename, Unlocks, sim_items, sim_globals, seed, 16)
         runtimes.append(runtime)
         runtimes_sum += runtime
         quick_print(runtime)
