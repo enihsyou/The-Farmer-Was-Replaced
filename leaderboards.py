@@ -50,6 +50,10 @@ def run_leaderboard_sunflowers_single():
     leaderboard_run(Leaderboards.Sunflowers_Single, "sunflowers_single", 40960)
 
 
+def run_leaderboard_maze():
+    leaderboard_run(Leaderboards.Maze, "maze", 40960)
+
+
 def run_leaderboard_maze_single():
     leaderboard_run(Leaderboards.Maze_Single, "maze_single", 40960)
 
@@ -107,4 +111,4 @@ def simulate_benchmark():
 
 
 if __name__ == "__main__":
-    run_leaderboard_sunflowers()
+    run_leaderboard_maze()
