@@ -125,7 +125,6 @@ def straight_move_do(side_length, d, do):
     return fn
 
 
-DIRECTIONS = [North, East, South, West]
 BLOCK_W, BLOCK_H = 4, 8
 
 

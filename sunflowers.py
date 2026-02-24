@@ -1,9 +1,30 @@
 s = get_world_size()
 m = s - 1
+d = max_drones()
+MAX_P = 15
+MIN_P = 7
+AVERAGE_BUCKET_SIZE = 32 // (MAX_P - MIN_P) + 1
+
+COST_OF_SUNFLOWER = get_cost(Entities.Sunflower)[Items.Carrot]  # ty: ignore
+COST_OF_CARROT_EVERY_ROUND = s * s * COST_OF_SUNFLOWER
+YIELD_OF_HAY_EVERY_ROUND = d * 512
+
+BLOCK_W, BLOCK_H = 4, 8
 
 
-def move_to_y(ty):
-    cy = get_pos_y()
+def move_to(pos):
+    cx, cy = get_pos_x(), get_pos_y()
+    tx, ty = pos
+
+    dx_east = (tx - cx) % s
+    dx_west = s - dx_east
+    if dx_east < dx_west:
+        for _ in range(dx_east):
+            move(East)
+    else:
+        for _ in range(dx_west):
+            move(West)
+
     dy_north = (ty - cy) % s
     dy_south = s - dy_north
     if dy_north < dy_south:
@@ -14,32 +35,65 @@ def move_to_y(ty):
             move(South)
 
 
-def work_plant():
-    petal_count = [[], [], [], [], [], [], [], [], []]
-    for _ in range(s):
-        if get_ground_type() != Grounds.Soil:
-            till()
-        plant(Entities.Sunflower)
-        petal_count[measure() - 7].append(get_pos_y())
-        if measure() >= 14:
-            w = min(
-                4 - 4 * get_water() // 1,
-                get_pos_y() // 8,
-                num_items(Items.Water),
-            )
-            if w:
-                use_item(Items.Water, w)
-        move(North)
-    return petal_count
+def traverse_rectangle(fn, w, h):
+    fn()
+    move(North)
+    for i in range(w, 0, -2):
+        for j in range(h, 1, -1):
+            fn()
+            if j != 2:
+                move(North)
+        move(East)
+        for j in range(h, 1, -1):
+            fn()
+            if j != 2:
+                move(South)
+        if i != 2:
+            move(East)
+    move(South)
+    for _ in range(1, w):
+        fn()
+        move(West)
 
 
-def work_harvest_petal(field_x_array):
+def drone_work(carrots_on_finish, hay_on_start):
+
     def fn():
-        line = field_x_array[get_pos_x()]
+        line = [[], [], [], [], [], [], [], [], []]
 
-        for p in range(15 - 7, -1, -1):
-            for y in line[p]:
-                move_to_y(y)
+        def do_plant():
+            if get_ground_type() != Grounds.Soil:
+                till()
+            pos = (get_pos_x(), get_pos_y())
+            plant(Entities.Sunflower)
+            v = measure()
+            # 控制各无人机处理数量不要差别太大
+            while len(line[v - MIN_P]) > AVERAGE_BUCKET_SIZE:
+                harvest()
+                plant(Entities.Sunflower)
+                v = measure()
+            line[v - MIN_P].append(pos)
+
+        traverse_rectangle(do_plant, BLOCK_W, BLOCK_H)
+
+        wait_others_plant = True
+        wait_others_harvest = False
+
+        for p in range(MAX_P - MIN_P, -1, -1):
+            hay_on_finish = hay_on_start + YIELD_OF_HAY_EVERY_ROUND * (8 - p)
+            for pos in line[p]:
+                move_to(pos)
+                if wait_others_plant:
+                    # 等待全部种植完成
+                    while num_items(Items.Carrot) > carrots_on_finish:
+                        continue
+                    wait_others_plant = False
+                if wait_others_harvest:
+                    # 等待全部采收完成
+                    while num_items(Items.Hay) < hay_on_finish:
+                        if num_items(Items.Power) >= 100000:
+                            return
+                    wait_others_harvest = False
                 if measure() == None:
                     continue
                 while not can_harvest():
@@ -60,28 +114,12 @@ def work_harvest_petal(field_x_array):
                 # 本列没有这个花瓣数的向日葵了，随便清理一株以种草
                 harvest()
 
-            # 种草通知本列完成
-            hay = num_items(Items.Hay)
-            div = hay // (512 * 32)
-            mod = hay % (512 * 32)
             plant(Entities.Grass)
             while not can_harvest():
                 if get_water() < 0.75:
                     num_items(Items.Water)
             harvest()
-            # 提前移动到下一个位置
-            if p and line[p - 1]:
-                move_to_y(line[p - 1][0])
-            # 集齐 32 列说明本轮完成了
-            while True:
-                if num_items(Items.Power) > 100000:
-                    return
-                hay_now = num_items(Items.Hay)
-                div_now = hay_now // (512 * 32)
-                mod_now = hay_now % (512 * 32)
-                if div_now != div or mod_now < mod or mod_now == 0:
-                    break
-
+            wait_others_harvest = True
 
     return fn
 
@@ -90,34 +128,63 @@ def sender(dir, main, work):
     def fn():
         if main:
             move(dir)
-        drones = {}
+        drones = []
         for _ in range(1, s // 2):
-            drones[get_pos_x()] = spawn_drone(work)
+            drones.append(spawn_drone(work))
             move(dir)
-        self_result = work()
+        work()
         for x in drones:
-            drones[x] = wait_for(drones[x])
-        drones[get_pos_x()] = self_result
-        return drones
+            wait_for(drones[x])
+
+    return fn
+
+
+def straight_move_do(side_length, d, do):
+    def fn():
+        for _ in range(side_length):
+            move(d)
+        do()
+
+    return fn
+
+
+def spawn_drone_task1(face, work):
+    def fn():
+        forked = spawn_drone(straight_move_do(BLOCK_H, face, spawn_drone_task2(work)))
+        spawn_drone_task2(work)()
+        wait_for(forked)
+
+    return fn
+
+
+def spawn_drone_task2(work):
+    def fn():
+        forked = spawn_drone(
+            straight_move_do(BLOCK_W, East, spawn_drone_task3(East, work))
+        )
+        spawn_drone_task3(West, work)()
+        wait_for(forked)
+
+    return fn
+
+
+def spawn_drone_task3(face, work):
+    def fn():
+        for _ in range(3):
+            spawn_drone(work)
+            for _ in range(BLOCK_W):
+                move(face)
+        work()
 
     return fn
 
 
 while num_items(Items.Power) < 100000:
-    field_x_array = {}
-    worker1 = sender(West, False, work_plant)
-    worker2 = sender(East, True, work_plant)
-    forked = spawn_drone(worker1)
-    worker2_return = worker2()
-    worker1_return = wait_for(forked)
-    for x in worker1_return:
-        field_x_array[x] = worker1_return[x]
-    for x in worker2_return:
-        field_x_array[x] = worker2_return[x]
-
-    work = work_harvest_petal(field_x_array)
-    worker1 = sender(West, False, work)
-    worker2 = sender(East, True, work)
-    forked = spawn_drone(worker1)
-    worker2_return = worker2()
-    worker1_return = wait_for(forked)
+    carrots_on_finish = num_items(Items.Carrot) - COST_OF_CARROT_EVERY_ROUND
+    hay_on_start = num_items(Items.Hay)
+    work = drone_work(carrots_on_finish, hay_on_start)
+    forked = spawn_drone(
+        straight_move_do(BLOCK_H, North, spawn_drone_task1(North, work))
+    )
+    spawn_drone_task1(South, work)()
+    wait_for(forked)

@@ -100,5 +100,11 @@ def simulate_leaderboard_sunflowers():
     simulate_leaderboard("sunflowers", sim_items, sim_globals)
 
 
+def simulate_benchmark():
+    sim_items = {Items.Power: 10}
+    sim_globals = {}
+    simulate_leaderboard("benchmark", sim_items, sim_globals)
+
+
 if __name__ == "__main__":
     run_leaderboard_sunflowers()
