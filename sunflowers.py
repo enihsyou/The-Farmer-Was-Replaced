@@ -124,67 +124,47 @@ def drone_work(carrots_on_finish, hay_on_start):
     return fn
 
 
-def sender(dir, main, work):
-    def fn():
-        if main:
-            move(dir)
-        drones = []
-        for _ in range(1, s // 2):
-            drones.append(spawn_drone(work))
-            move(dir)
-        work()
-        for x in drones:
-            wait_for(drones[x])
+def spawn_drones_32(work):
+    w, h = 4, 8
 
-    return fn
+    def wrapper(fn, arg0):
+        def wrapped():
+            fn(arg0)
 
+        return wrapped
 
-def straight_move_do(side_length, d, do):
-    def fn():
-        for _ in range(side_length):
-            move(d)
-        do()
+    def move_do(side_length, d, do):
+        def fn():
+            for _ in range(side_length):
+                move(d)
+            do()
 
-    return fn
+        return fn
 
-
-def spawn_drone_task1(face, work):
-    def fn():
-        forked = spawn_drone(straight_move_do(BLOCK_H, face, spawn_drone_task2(work)))
-        spawn_drone_task2(work)()
+    def spawn_drone_task1(face):
+        forked = spawn_drone(move_do(h, face, spawn_drone_task2))
+        spawn_drone_task2()
         wait_for(forked)
 
-    return fn
-
-
-def spawn_drone_task2(work):
-    def fn():
-        forked = spawn_drone(
-            straight_move_do(BLOCK_W, East, spawn_drone_task3(East, work))
-        )
-        spawn_drone_task3(West, work)()
+    def spawn_drone_task2():
+        forked = spawn_drone(move_do(w, East, wrapper(spawn_drone_task3, East)))
+        spawn_drone_task3(West)
         wait_for(forked)
 
-    return fn
-
-
-def spawn_drone_task3(face, work):
-    def fn():
+    def spawn_drone_task3(face):
         for _ in range(3):
             spawn_drone(work)
-            for _ in range(BLOCK_W):
+            for _ in range(w):
                 move(face)
         work()
 
-    return fn
+    forked = spawn_drone(move_do(h, North, wrapper(spawn_drone_task1, North)))
+    spawn_drone_task1(South)
+    wait_for(forked)
 
 
 while num_items(Items.Power) < 100000:
     carrots_on_finish = num_items(Items.Carrot) - COST_OF_CARROT_EVERY_ROUND
     hay_on_start = num_items(Items.Hay)
     work = drone_work(carrots_on_finish, hay_on_start)
-    forked = spawn_drone(
-        straight_move_do(BLOCK_H, North, spawn_drone_task1(North, work))
-    )
-    spawn_drone_task1(South, work)()
-    wait_for(forked)
+    spawn_drones_32(work)

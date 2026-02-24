@@ -63,7 +63,7 @@ def simulate_leaderboard(filename, sim_items, sim_globals):
     runtimes_sum = 0
     for _ in range(5):
         seed = random() * 10000000 // 1
-        runtime = simulate(filename, Unlocks, sim_items, sim_globals, seed, 4)
+        runtime = simulate(filename, Unlocks, sim_items, sim_globals, seed, 2)
         runtimes.append(runtime)
         runtimes_sum += runtime
         quick_print(runtime)
@@ -102,6 +102,12 @@ def simulate_leaderboard_sunflowers():
     sim_items = {Items.Carrot: 1000000000}
     sim_globals = {}
     simulate_leaderboard("sunflowers", sim_items, sim_globals)
+
+
+def simulate_leaderboard_maze():
+    sim_items = {Items.Weird_Substance: 1000000, Items.Power: 100000}
+    sim_globals = {}
+    simulate_leaderboard("maze", sim_items, sim_globals)
 
 
 def simulate_benchmark():
