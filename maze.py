@@ -1,3 +1,4 @@
+from __builtins__ import quick_print
 s = get_world_size()
 
 INF_METRIC = 999999
@@ -7,7 +8,6 @@ OPPOSITES = {
     South: North,
     East: West,
     West: East,
-    None: None,
 }
 RELATIVE = {
     North: (0, 1),
@@ -25,15 +25,18 @@ COSTS = MSIZE * MULTIPLIER
 GOLDS = MSIZE * COSTS
 
 
-def wrapper2(fn, arg0, arg1):
+def wrapper3(fn, arg0, arg1, arg2):
     def wrapped():
-        return fn(arg0, arg1)
+        return fn(arg0, arg1, arg2)
 
     return wrapped
 
 
-def scan_maze(maze, direction):
-    backwards = OPPOSITES[direction]
+def scan_maze(maze, direction, can_spawn):
+    if direction == None:
+        backwards = None
+    else:
+        backwards = OPPOSITES[direction]
     if direction != None:
         move(direction)
 
@@ -44,16 +47,20 @@ def scan_maze(maze, direction):
 
     maze[get_pos_x(), get_pos_y()] = direction_options()
     if len(searchable) == 1:
-        scan_maze(maze, searchable[0])
+        scan_maze(maze, searchable[0], can_spawn)
     elif len(searchable) >= 2:
         drones = []
         for dir in searchable:
-            work = wrapper2(scan_maze, {}, dir)
-            fork = spawn_drone(work)
-            if fork == None:
-                scan_maze(maze, dir)
+            if can_spawn:
+                work = wrapper3(scan_maze, {}, dir, False)
+                fork = spawn_drone(work)
+                if fork == None:
+                    scan_maze(maze, dir, False)
+                else:
+                    drones.append(fork)
+                    can_spawn = False
             else:
-                drones.append(fork)
+                scan_maze(maze, dir, can_spawn)
         for drone in drones:
             fork_return = wait_for(drone)
             for key in fork_return:
@@ -71,12 +78,10 @@ def plot_flow_field(maze, dist_to_base, path_to_base, base):
     out_stack = [(base, dist_to_base[base])]
 
     while in_stack or out_stack:
-        if out_stack:
-            old_pos, dist = out_stack.pop()
-        else:
-            out_stack = in_stack[::-1]
-            in_stack = []
-            old_pos, dist = out_stack.pop()
+        if not out_stack:
+            while in_stack:
+                out_stack.append(in_stack.pop())
+        old_pos, dist = out_stack.pop()
         options = maze[old_pos]
         for dir in options:
             if options[dir]:
@@ -119,8 +124,7 @@ def direction_options():
     return moveables
 
 
-def move_and_update_maze(maze, dist_to_base, path_to_base, dir):
-    move(dir)
+def update_maze(maze, dist_to_base, path_to_base):
     pos = (get_pos_x(), get_pos_y())
     options = maze[pos]
     for dir in DIRECTIONS:
@@ -128,8 +132,8 @@ def move_and_update_maze(maze, dist_to_base, path_to_base, dir):
             continue
         if can_move(dir):
             options[dir] = True
-            new_pos = virtual_move(pos, dir)
-            plot_flow_field(maze, dist_to_base, path_to_base, new_pos)
+            plot_flow_field(maze, dist_to_base, path_to_base, pos)
+            plot_flow_field(maze, dist_to_base, path_to_base, virtual_move(pos, dir))
 
 
 def drone_work():
@@ -145,37 +149,36 @@ def drone_work():
     use_item(Items.Weird_Substance, COSTS)
 
     # 了解迷宫
-    maze = scan_maze({}, None)
-    took = 0
-
-    # 构造流场
+    maze = scan_maze({}, None, True)
     base = (get_pos_x(), get_pos_y())
     dist_to_base = {base: 0}
     path_to_base = {base: None}
     plot_flow_field(maze, dist_to_base, path_to_base, base)
 
-    while True:
-        gold = measure()
+    for i in range(301):
+        use_item(Items.Weird_Substance, COSTS)
+
         back_to_base = find_path(maze, path_to_base, (get_pos_x(), get_pos_y()))
-        base_to_gold = find_path(maze, path_to_base, gold)
+        base_to_gold = find_path(maze, path_to_base, measure())
 
         while back_to_base and base_to_gold and back_to_base[-1] == base_to_gold[-1]:
             back_to_base.pop()
             base_to_gold.pop()
 
-        scan = took % 10 == 0
-        for step in back_to_base:
-            move_and_update_maze(maze, dist_to_base, path_to_base, step)
-        for step in base_to_gold[::-1]:
-            step = OPPOSITES[step]
-            move_and_update_maze(maze, dist_to_base, path_to_base, step)
+        if i % 10:
+            for step in back_to_base:
+                move(step)
+            for step in base_to_gold[::-1]:
+                move(OPPOSITES[step])
+        else:
+            for step in back_to_base:
+                move(step)
+                update_maze(maze, dist_to_base, path_to_base)
+            for step in base_to_gold[::-1]:
+                move(OPPOSITES[step])
+                update_maze(maze, dist_to_base, path_to_base)
 
-        use_item(Items.Weird_Substance, COSTS)
-        took += 1
-        if measure() == gold:
-            # 300 次到头了
-            harvest()
-            return
+    harvest()
 
 
 def spawn_drones_16(work):
@@ -208,13 +211,7 @@ def spawn_drones_16(work):
 START_HAY = num_items(Items.Hay)
 BEGIN_HAY = START_HAY + 512 * 16
 
-clear()
-move(North)
-move(North)
-move(North)
-move(North)
-move(East)
-move(East)
-move(East)
-move(East)
+for _ in range(4):
+    move(East)
+    move(North)
 spawn_drones_16(drone_work)
