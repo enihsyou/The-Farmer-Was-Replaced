@@ -130,37 +130,26 @@ def drone_work():
     while num_items(Items.Hay) != BEGIN_HAY:
         continue
 
-    forked = spawn_drone(wrapper2(maze_solver, 3, 3))
-    wait_ticks(1199)
-
     # 生成迷宫
     plant(Entities.Bush)
     use_item(Items.Weird_Substance, COSTS)
 
-    maze_solver(0, 0)
+    # 了解迷宫
+    maze = scan_maze({}, None)
+
+    forked = spawn_drone(wrapper2(maze_solver, maze, (2, 2)))
+    maze_solver(maze, (-2, -2))
     wait_for(forked)
     harvest()
 
 
-def maze_solver(offset_x, offset_y):
-    for _ in range(offset_x):
-        move(East)
-    for _ in range(offset_y):
-        move(North)
-
-    while (
-        get_entity_type() != Entities.Hedge and get_entity_type() != Entities.Treasure
-    ):
-        continue
-
-    # 了解迷宫
-    maze = scan_maze({}, None)
-    base = (get_pos_x(), get_pos_y())
+def maze_solver(maze, offset):
+    base = (get_pos_x() + offset[0], get_pos_y() + offset[1])
     dist_to_base = {base: 0}
     path_to_base = {base: None}
     plot_flow_field(maze, dist_to_base, path_to_base, base)
 
-    for i in range(601):
+    for i in range(600):
         gold = measure()
         if get_entity_type() == Entities.Treasure:
             use_item(Items.Weird_Substance, COSTS)
@@ -177,7 +166,7 @@ def maze_solver(offset_x, offset_y):
             back_to_base.pop()
             base_to_gold.pop()
 
-        if i % 5:
+        if i % 8:
             for step in back_to_base:
                 move(step)
             if measure() != gold:
