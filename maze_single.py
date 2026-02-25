@@ -71,7 +71,7 @@ def plot_flow_field(maze, dist_to_base, path_to_base, base):
 
 
 # Helper to compute the path to a base
-def find_path(maze, path_to_base, start):
+def find_path(path_to_base, start):
     movements = []
     pos = start
     dir = path_to_base[pos]
@@ -106,7 +106,7 @@ def update_maze(maze, dist_to_base, path_to_base):
 
 
 # move to BASE
-for _ in range(s // 2):
+for _ in range(4):
     move(East)
     move(North)
 plant(Entities.Bush)
@@ -125,8 +125,8 @@ for i in range(301):
     use_item(Items.Weird_Substance, COSTS)
 
     # Compute paths from drone and goal to base
-    back_to_base = find_path(maze, path_to_base, (get_pos_x(), get_pos_y()))
-    base_to_gold = find_path(maze, path_to_base, measure())
+    back_to_base = find_path(path_to_base, (get_pos_x(), get_pos_y()))
+    base_to_gold = find_path(path_to_base, measure())
 
     # Cancel the final moves if they're the same
     while back_to_base and base_to_gold and back_to_base[-1] == base_to_gold[-1]:

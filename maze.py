@@ -1,4 +1,5 @@
 from __builtins__ import quick_print
+
 s = get_world_size()
 
 INF_METRIC = 999999
@@ -40,12 +41,16 @@ def scan_maze(maze, direction):
     if direction != None:
         move(direction)
 
+    walls = set()
     searchable = []
     for dir in DIRECTIONS:
-        if dir != backwards and can_move(dir):
-            searchable.append(dir)
+        if dir != backwards:
+            if can_move(dir):
+                searchable.append(dir)
+            else:
+                walls.add(dir)
 
-    maze[get_pos_x(), get_pos_y()] = direction_options()
+    maze[get_pos_x(), get_pos_y()] = walls
     if len(searchable) == 1:
         scan_maze(maze, searchable[0])
     elif len(searchable) >= 2:
@@ -79,25 +84,25 @@ def plot_flow_field(maze, dist_to_base, path_to_base, base):
             out_stack = in_stack[::-1]
             in_stack = []
         old_pos, dist = out_stack.pop()
-        options = maze[old_pos]
-        for dir in options:
-            if options[dir]:
-                new_pos = virtual_move(old_pos, dir)
-                # take out distance remembered
-                if new_pos in dist_to_base:
-                    dist_old = dist_to_base[new_pos]
-                else:
-                    dist_old = INF_METRIC
-                # compare to current optimal distance
-                dist_new = dist + 1
-                # update if better
-                if dist_new < dist_old:
-                    dist_to_base[new_pos] = dist_new
-                    path_to_base[new_pos] = OPPOSITES[dir]
-                    in_stack.append((new_pos, dist_new))
+        for dir in DIRECTIONS:
+            if dir in maze[old_pos]:
+                continue  # hit walls
+            new_pos = virtual_move(old_pos, dir)
+            # take out distance remembered
+            if new_pos in dist_to_base:
+                dist_old = dist_to_base[new_pos]
+            else:
+                dist_old = INF_METRIC
+            # compare to current optimal distance
+            dist_new = dist + 1
+            # update if better
+            if dist_new < dist_old:
+                dist_to_base[new_pos] = dist_new
+                path_to_base[new_pos] = OPPOSITES[dir]
+                in_stack.append((new_pos, dist_new))
 
 
-def find_path(maze, path_to_base, start):
+def find_path(path_to_base, start):
     movements = []
     pos = start
     dir = path_to_base[pos]
@@ -114,26 +119,18 @@ def virtual_move(pos, direction):
     return px + dx, py + dy
 
 
-def direction_options():
-    moveables = {}
-    for dir in DIRECTIONS:
-        moveables[dir] = can_move(dir)
-    return moveables
-
-
 def update_maze(maze, dist_to_base, path_to_base):
-    pos = (get_pos_x(), get_pos_y())
-    options = maze[pos]
+    old_pos = (get_pos_x(), get_pos_y())
     changed = False
-    for dir in DIRECTIONS:
-        if options[dir]:
-            continue
+    for dir in list(maze[old_pos]):
         if can_move(dir):
-            options[dir] = True
+            new_pos = virtual_move(old_pos, dir)
+            maze[old_pos].remove(dir)
+            maze[new_pos].remove(OPPOSITES[dir])
             changed = True
-            plot_flow_field(maze, dist_to_base, path_to_base, virtual_move(pos, dir))
+            plot_flow_field(maze, dist_to_base, path_to_base, new_pos)
     if changed:
-        plot_flow_field(maze, dist_to_base, path_to_base, pos)
+        plot_flow_field(maze, dist_to_base, path_to_base, old_pos)
 
 
 def drone_work():
@@ -158,14 +155,14 @@ def drone_work():
     for i in range(301):
         use_item(Items.Weird_Substance, COSTS)
 
-        back_to_base = find_path(maze, path_to_base, (get_pos_x(), get_pos_y()))
-        base_to_gold = find_path(maze, path_to_base, measure())
+        back_to_base = find_path(path_to_base, (get_pos_x(), get_pos_y()))
+        base_to_gold = find_path(path_to_base, measure())
 
         while back_to_base and base_to_gold and back_to_base[-1] == base_to_gold[-1]:
             back_to_base.pop()
             base_to_gold.pop()
 
-        if i % 10:
+        if i % 5:
             for step in back_to_base:
                 move(step)
             for step in base_to_gold[::-1]:
