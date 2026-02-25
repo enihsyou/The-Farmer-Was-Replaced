@@ -165,13 +165,10 @@ def drone_work():
 
         scan = took % 10 == 0
         for step in back_to_base:
-            move(step)
+            move_and_update_maze(maze, dist_to_base, path_to_base, step)
         for step in base_to_gold[::-1]:
-            move(OPPOSITES[step]) # ty: ignore
-
-            # 每 N 轮更新地图寻找捷径
-            # if scan:
-            #     maze[get_pos_x(), get_pos_y()] = direction_options()
+            step = OPPOSITES[step]
+            move_and_update_maze(maze, dist_to_base, path_to_base, step)
 
         use_item(Items.Weird_Substance, COSTS)
         took += 1
