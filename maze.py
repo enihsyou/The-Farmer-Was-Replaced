@@ -1,5 +1,3 @@
-from __builtins__ import quick_print
-
 s = get_world_size()
 
 INF_METRIC = 999999
@@ -51,22 +49,8 @@ def scan_maze(maze, direction):
                 walls.add(dir)
 
     maze[get_pos_x(), get_pos_y()] = walls
-    if len(searchable) == 1:
-        scan_maze(maze, searchable[0])
-    elif len(searchable) >= 2:
-        drones = []
-        for dir in searchable:
-            work = wrapper2(scan_maze, {}, dir)
-            fork = spawn_drone(work)
-            if fork == None:
-                scan_maze(maze, dir)
-            else:
-                drones.append(fork)
-                can_spawn = False
-        for drone in drones:
-            fork_return = wait_for(drone)
-            for key in fork_return:
-                maze[key] = fork_return[key]
+    for dir in searchable:
+        scan_maze(maze, dir)
 
     if backwards != None:
         move(backwards)
@@ -133,6 +117,11 @@ def update_maze(maze, dist_to_base, path_to_base):
         plot_flow_field(maze, dist_to_base, path_to_base, old_pos)
 
 
+def wait_ticks(ticks):
+    for _ in range(ticks):
+        pass
+
+
 def drone_work():
     # 等待其他无人机到位
     while not can_harvest():
@@ -141,9 +130,28 @@ def drone_work():
     while num_items(Items.Hay) != BEGIN_HAY:
         continue
 
+    forked = spawn_drone(wrapper2(maze_solver, 3, 3))
+    wait_ticks(1199)
+
     # 生成迷宫
     plant(Entities.Bush)
     use_item(Items.Weird_Substance, COSTS)
+
+    maze_solver(0, 0)
+    wait_for(forked)
+    harvest()
+
+
+def maze_solver(offset_x, offset_y):
+    for _ in range(offset_x):
+        move(East)
+    for _ in range(offset_y):
+        move(North)
+
+    while (
+        get_entity_type() != Entities.Hedge and get_entity_type() != Entities.Treasure
+    ):
+        continue
 
     # 了解迷宫
     maze = scan_maze({}, None)
@@ -152,11 +160,18 @@ def drone_work():
     path_to_base = {base: None}
     plot_flow_field(maze, dist_to_base, path_to_base, base)
 
-    for i in range(301):
-        use_item(Items.Weird_Substance, COSTS)
+    for i in range(601):
+        gold = measure()
+        if get_entity_type() == Entities.Treasure:
+            use_item(Items.Weird_Substance, COSTS)
+            if measure() == gold:
+                return
+            continue
+        if get_entity_type() != Entities.Hedge:
+            return
 
         back_to_base = find_path(path_to_base, (get_pos_x(), get_pos_y()))
-        base_to_gold = find_path(path_to_base, measure())
+        base_to_gold = find_path(path_to_base, gold)
 
         while back_to_base and base_to_gold and back_to_base[-1] == base_to_gold[-1]:
             back_to_base.pop()
@@ -165,17 +180,19 @@ def drone_work():
         if i % 5:
             for step in back_to_base:
                 move(step)
+            if measure() != gold:
+                continue
             for step in base_to_gold[::-1]:
                 move(OPPOSITES[step])
         else:
             for step in back_to_base:
                 move(step)
                 update_maze(maze, dist_to_base, path_to_base)
+            if measure() != gold:
+                continue
             for step in base_to_gold[::-1]:
                 move(OPPOSITES[step])
                 update_maze(maze, dist_to_base, path_to_base)
-
-    harvest()
 
 
 def spawn_drones_16(work):
@@ -207,7 +224,7 @@ def spawn_drones_16(work):
 
 START_HAY = num_items(Items.Hay)
 BEGIN_HAY = START_HAY + 512 * 16
-
+clear()
 for _ in range(4):
     move(East)
     move(North)
