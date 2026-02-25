@@ -45,7 +45,7 @@ def scan_maze(maze, direction):
     maze[get_pos_x(), get_pos_y()] = direction_options()
     if len(searchable) == 1:
         scan_maze(maze, searchable[0])
-    if len(searchable) >= 2:
+    elif len(searchable) >= 2:
         drones = []
         for dir in searchable:
             work = wrapper2(scan_maze, {}, dir)
@@ -65,32 +65,51 @@ def scan_maze(maze, direction):
     return maze
 
 
-def find_path(maze, position, treasure, direction):
-    backwards = OPPOSITES[direction]
+def plot_flow_field(maze, dist_to_base, path_to_base, base):
+    # use two stacks to simulate a queue, because pop() is faster than pop(0)
+    in_stack = []
+    out_stack = [(base, dist_to_base[base])]
 
-    if direction != None:
-        # 计算移动后的位置
-        px, py = position
-        dx, dy = RELATIVE[direction]
-        position = px + dx, py + dy
+    while in_stack or out_stack:
+        if out_stack:
+            old_pos, dist = out_stack.pop()
+        else:
+            out_stack = in_stack[::-1]
+            in_stack = []
+            old_pos, dist = out_stack.pop()
+        options = maze[old_pos]
+        for dir in options:
+            if options[dir]:
+                new_pos = virtual_move(old_pos, dir)
+                # take out distance remembered
+                if new_pos in dist_to_base:
+                    dist_old = dist_to_base[new_pos]
+                else:
+                    dist_old = INF_METRIC
+                # compare to current optimal distance
+                dist_new = dist + 1
+                # update if better
+                if dist_new < dist_old:
+                    dist_to_base[new_pos] = dist_new
+                    path_to_base[new_pos] = OPPOSITES[dir]
+                    in_stack.append((new_pos, dist_new))
 
-    if position == treasure:
-        # 刚好在宝藏上
-        if direction == None:
-            return []
-        # 移动后在宝藏上
-        return [direction]
 
-    options = maze[position]
-    for dir in DIRECTIONS:
-        # 尝试每一个可移动的方向
-        if dir == backwards or not options[dir]:
-            continue
-        path_rev = find_path(maze, position, treasure, dir)
-        if path_rev:
-            if direction != None:
-                path_rev.append(direction)
-            return path_rev
+def find_path(maze, path_to_base, start):
+    movements = []
+    pos = start
+    dir = path_to_base[pos]
+    while dir:
+        movements.append(dir)
+        pos = virtual_move(pos, dir)
+        dir = path_to_base[pos]
+    return movements
+
+
+def virtual_move(pos, direction):
+    px, py = pos
+    dx, dy = RELATIVE[direction]
+    return px + dx, py + dy
 
 
 def direction_options():
@@ -98,6 +117,19 @@ def direction_options():
     for dir in DIRECTIONS:
         moveables[dir] = can_move(dir)
     return moveables
+
+
+def move_and_update_maze(maze, dist_to_base, path_to_base, dir):
+    move(dir)
+    pos = (get_pos_x(), get_pos_y())
+    options = maze[pos]
+    for dir in DIRECTIONS:
+        if options[dir]:
+            continue
+        if can_move(dir):
+            options[dir] = True
+            new_pos = virtual_move(pos, dir)
+            plot_flow_field(maze, dist_to_base, path_to_base, new_pos)
 
 
 def drone_work():
@@ -112,16 +144,31 @@ def drone_work():
     plant(Entities.Bush)
     use_item(Items.Weird_Substance, COSTS)
 
+    # 了解迷宫
     maze = scan_maze({}, None)
     took = 0
+
+    # 构造流场
+    base = (get_pos_x(), get_pos_y())
+    dist_to_base = {base: 0}
+    path_to_base = {base: None}
+    plot_flow_field(maze, dist_to_base, path_to_base, base)
+
     while True:
-        base = (get_pos_x(), get_pos_y())
         gold = measure()
-        path = find_path(maze, base, gold, None)[::-1]
+        back_to_base = find_path(maze, path_to_base, (get_pos_x(), get_pos_y()))
+        base_to_gold = find_path(maze, path_to_base, gold)
+
+        while back_to_base and base_to_gold and back_to_base[-1] == base_to_gold[-1]:
+            back_to_base.pop()
+            base_to_gold.pop()
 
         scan = took % 10 == 0
-        for step in path or []:
+        for step in back_to_base:
             move(step)
+        for step in base_to_gold[::-1]:
+            move(OPPOSITES[step]) # ty: ignore
+
             # 每 N 轮更新地图寻找捷径
             # if scan:
             #     maze[get_pos_x(), get_pos_y()] = direction_options()
