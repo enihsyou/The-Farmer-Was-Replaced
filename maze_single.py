@@ -97,8 +97,7 @@ def get_path_to_base(pos):
 
 
 # Helper to look for missing walls
-def move_and_break_walls(step):
-    move(step)
+def break_walls():
     old_pos = (get_pos_x(), get_pos_y())
     for dir in list(WALLS[old_pos]):
         if can_move(dir):
@@ -124,13 +123,13 @@ use_item(Items.Weird_Substance, AMOUNT)
 scan_maze()
 do_bfs(BASE)
 
-for i in range(601):
+for i in range(301):
+    # Recycle treasure if it's here
+    use_item(Items.Weird_Substance, AMOUNT)
+
     # Compute paths from drone and goal to base
     dpath = get_path_to_base((get_pos_x(), get_pos_y()))
     gpath = get_path_to_base(measure())
-
-    # Recycle treasure if it's here
-    use_item(Items.Weird_Substance, AMOUNT)
 
     # Cancel the final moves if they're the same
     while dpath and gpath and dpath[-1] == gpath[-1]:
@@ -140,13 +139,15 @@ for i in range(601):
         # Only update map every 10 iterations to save time
         for step in dpath:
             move(step)
-        for stop in gpath[::-1]:
-            move(OPPOSITES[stop])
+        for step in gpath[::-1]:
+            move(OPPOSITES[step])
     else:
         # Follow the drone path forward
         for step in dpath:
-            move_and_break_walls(step)
+            move(step)
+            break_walls()
         # Follow the goal path backward
         for step in gpath[::-1]:
-            move_and_break_walls(OPPOSITES[step])
+            move(OPPOSITES[step])
+            break_walls()
 harvest()
