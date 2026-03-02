@@ -10,6 +10,7 @@ def insertion_sort_vertical():
         if get_pos_y() > 0:
             if measure() < measure(South):  # ty: ignore
                 swap(South)
+                # 多线程环境下不可再与北侧交换
                 move(South)
                 continue
         break
@@ -23,6 +24,7 @@ def insertion_sort_horizontal():
         if get_pos_x() > 0:
             if measure() < measure(West):  # ty: ignore
                 swap(West)
+                # 多线程环境下不可再与东侧交换
                 move(West)
                 continue
         break
@@ -70,7 +72,7 @@ def horizontal_work():
     for _ in range(s):
         till()
         plant(Entities.Cactus)
-        if get_pos_y() > 0 and measure() < measure(South): # ty: ignore
+        if get_pos_y() > 0 and measure() < measure(South):  # ty: ignore
             # 种完就立刻排序，节约移动时间
             swap(South)
         move(North)
