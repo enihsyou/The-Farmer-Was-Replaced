@@ -28,7 +28,7 @@ def insertion_sort_horizontal():
         break
 
 
-def move_to_x(tx):
+def move_to_and_swap_x(tx):
     cx = get_pos_x()
     dx_east = (tx - cx) % s
     dx_west = s - dx_east
@@ -37,10 +37,13 @@ def move_to_x(tx):
             move(East)
     else:
         for _ in range(dx_west):
+            # 已跨越边界，在移动到目标位置前的这阶段，遇到的都是未排序过的，利用移动到此位的机会做个交换
+            if get_pos_x() > cx and measure() < measure(West):  # ty: ignore
+                swap(West)
             move(West)
 
 
-def move_to_y(ty):
+def move_to_and_swap_y(ty):
     cy = get_pos_y()
     dy_north = (ty - cy) % s
     dy_south = s - dy_north
@@ -49,6 +52,8 @@ def move_to_y(ty):
             move(North)
     else:
         for _ in range(dy_south):
+            if get_pos_y() > cy and measure() < measure(South):  # ty: ignore
+                swap(South)
             move(South)
 
 
@@ -65,6 +70,9 @@ def horizontal_work():
     for _ in range(s):
         till()
         plant(Entities.Cactus)
+        if get_pos_y() > 0 and measure() < measure(South): # ty: ignore
+            # 种完就立刻排序，节约移动时间
+            swap(South)
         move(North)
     all_dispatched = False
     other_finished = False
@@ -72,7 +80,7 @@ def horizontal_work():
     for y in range(s):
         all_dispatched = all_dispatched or num_drones() == s
         other_finished = other_finished or num_drones() < s
-        move_to_y(y)
+        move_to_and_swap_y(y)
         if all_dispatched and other_finished:
             drone = spawn_drone(insertion_sort_vertical)
             if drone:
@@ -90,7 +98,7 @@ def vertical_work():
     for x in range(s):
         all_dispatched = all_dispatched or num_drones() == s
         other_finished = other_finished or num_drones() < s
-        move_to_x(x)
+        move_to_and_swap_x(x)
         if all_dispatched and other_finished:
             drone = spawn_drone(insertion_sort_horizontal)
             if drone:
