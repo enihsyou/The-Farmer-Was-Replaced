@@ -7,7 +7,7 @@
 # - while 循环用 continue 比 pass 做循环体更快
 # - 等待成长用 while not can_harvest(): continue
 # - list.pop() 比 list.pop(0) 更快, 建议使用双栈模拟队列
-from __builtins__ import quick_print, use_item
+from __builtins__ import quick_print, use_item, set_world_size, Entities
 
 
 def print_ticks(fn):
@@ -25,57 +25,4 @@ def print_ticks(fn):
         "seconds",
     )
 
-
-def do_pop():
-    a = []
-    for i in range(100):
-        a.append(i)
-    for i in range(50):
-        a.pop()
-    for i in range(50):
-        a.append(i)
-    for i in range(100):
-        a.pop()
-
-
-def do_pop0():
-    a = []
-    for i in range(100):
-        a.append(i)
-    for i in range(50):
-        a.pop(0)
-    for i in range(50):
-        a.append(i)
-    for i in range(100):
-        a.pop(0)
-
-
-def sim_queue():
-    ins, out = [], []
-
-    def enqueue(x):
-        ins.append(x)
-
-    def dequeue():
-        if not out:
-            while ins:
-                out.append(ins.pop())
-        return out.pop()
-
-    for i in range(100):
-        enqueue(i)
-    for i in range(50):
-        enqueue(i)
-    for i in range(50):
-        dequeue()
-    for i in range(100):
-        dequeue()
-
-
-def bench_target():
-    do_pop()
-
-
-print_ticks(do_pop)
-print_ticks(do_pop0)
-print_ticks(sim_queue)
+print(get_cost(Entities.Tree))

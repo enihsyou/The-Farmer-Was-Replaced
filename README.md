@@ -1,5 +1,11 @@
 # The Farmer Was Replaced
 
+<div align="center">
+  <a href="https://github.com/enihsyou/The-Farmer-Was-Replaced">
+    <img alt="logo" src="https://cdn.akamai.steamstatic.com/steam/apps/2060160/header.jpg">
+  </a>
+</div>
+
 This directory contains save data for my progress for the game "The Farmer Was Replaced".
 
 
@@ -7,21 +13,21 @@ This directory contains save data for my progress for the game "The Farmer Was R
 
 Game version: 1.0 (6000.0.43.10027)
 
-| Category          | Best Time   | Global Rank | Date       |
-|-------------------|------------:|------------:|------------|
-| Hay               |    1:51.857 |          28 | 2026-01-29 |
-| Hay Single        |    2:50.050 |          14 | 2026-01-23 |
-| Wood              |    4:36.250 |           7 | 2026-01-31 |
-| Wood Single       |    5:18.492 |           9 | 2026-01-31 |
-| Carrots           |    3:50.222 |           5 | 2026-02-16 |
-| Carrots Single    |    4:09.969 |          10 | 2026-01-19 |
-| Pumpkins          |    6:17.799 |          12 | 2026-02-22 |
-| Pumpkins Single   |    7:29.750 |           8 | 2026-01-24 |
-| Cactus            |      40.258 |          75 | 2026-02-23 |
-| Cactus Single     |      20.224 |          17 | 2026-01-24 |
-| Sunflowers        |    4:09.864 |          82 | 2026-02-24 |
-| Sunflowers Single |    5:05.235 |          14 | 2026-01-26 |
-| Dinosaur          |   13:13.941 |          16 | 2026-01-17 |
-| Maze              |    2:28.328 |          47 | 2026-02-25 |
-| Maze Single       |    2:11.963 |          18 | 2026-02-25 |
-| Fastest Reset     |           - |           - |          - |
+| Category          |  Best Time   | Global Rank | Date       |
+|-------------------|-------------:|------------:|------------|
+| Hay               |     1:51.857 |          28 | 2026-01-29 |
+| Hay Single        |     2:50.050 |          14 | 2026-01-23 |
+| Wood              |     4:36.250 |           7 | 2026-01-31 |
+| Wood Single       |     5:18.492 |           9 | 2026-01-31 |
+| Carrots           |     3:50.222 |           5 | 2026-02-16 |
+| Carrots Single    |     4:09.969 |          10 | 2026-01-19 |
+| Pumpkins          |     6:17.799 |          12 | 2026-02-22 |
+| Pumpkins Single   |     7:29.750 |           8 | 2026-01-24 |
+| Cactus            |       40.258 |          75 | 2026-02-23 |
+| Cactus Single     |       20.224 |          17 | 2026-01-24 |
+| Sunflowers        |     4:09.864 |          82 | 2026-02-24 |
+| Sunflowers Single |     5:05.235 |          14 | 2026-01-26 |
+| Dinosaur          |    13:13.941 |          16 | 2026-01-17 |
+| Maze              |     2:28.328 |          47 | 2026-02-25 |
+| Maze Single       |     2:11.963 |          18 | 2026-02-25 |
+| Fastest Reset     | 58:49:21.199 |         557 | 2026-03-03 |

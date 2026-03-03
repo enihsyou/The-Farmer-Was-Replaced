@@ -1,6 +1,4 @@
 # Reference: https://github.com/Flekay/The-Farmer-Was-Replaced/blob/main/Maze/Single%20Drone/Shared_Vector_Flow_Field.py
-s = get_world_size()
-
 INF_METRIC = 999999
 DIRECTIONS = [North, East, South, West]
 OPPOSITES = {
@@ -105,48 +103,53 @@ def update_maze(maze, dist_to_base, path_to_base):
         plot_flow_field(maze, dist_to_base, path_to_base, old_pos)
 
 
-# move to BASE
-for _ in range(4):
-    move(East)
-    move(North)
-plant(Entities.Bush)
-use_item(Items.Weird_Substance, COSTS)
-
-# Map the maze
-maze = {}
-base = (get_pos_x(), get_pos_y())
-dist_to_base = {base: 0}
-path_to_base = {base: None}
-scan_maze(maze)
-plot_flow_field(maze, dist_to_base, path_to_base, base)
-
-for i in range(301):
-    # Recycle treasure if it's here
+def leaderboard():
+    # move to BASE
+    for _ in range(4):
+        move(East)
+        move(North)
+    plant(Entities.Bush)
     use_item(Items.Weird_Substance, COSTS)
 
-    # Compute paths from drone and goal to base
-    back_to_base = find_path(path_to_base, (get_pos_x(), get_pos_y()))
-    base_to_gold = find_path(path_to_base, measure())
+    # Map the maze
+    maze = {}
+    base = (get_pos_x(), get_pos_y())
+    dist_to_base = {base: 0}
+    path_to_base = {base: None}
+    scan_maze(maze)
+    plot_flow_field(maze, dist_to_base, path_to_base, base)
 
-    # Cancel the final moves if they're the same
-    while back_to_base and base_to_gold and back_to_base[-1] == base_to_gold[-1]:
-        base_to_gold.pop()
-        back_to_base.pop()
+    for i in range(301):
+        # Recycle treasure if it's here
+        use_item(Items.Weird_Substance, COSTS)
 
-    if i % 5 != 0:
-        # Only update map every 10 iterations to save time
-        for step in back_to_base:
-            move(step)
-        for step in base_to_gold[::-1]:
-            move(OPPOSITES[step])
-    else:
-        # Follow the drone path forward
-        for step in back_to_base:
-            move(step)
-            update_maze(maze, dist_to_base, path_to_base)
-        # Follow the goal path backward
-        for step in base_to_gold[::-1]:
-            move(OPPOSITES[step])
-            update_maze(maze, dist_to_base, path_to_base)
+        # Compute paths from drone and goal to base
+        back_to_base = find_path(path_to_base, (get_pos_x(), get_pos_y()))
+        base_to_gold = find_path(path_to_base, measure())
 
-harvest()
+        # Cancel the final moves if they're the same
+        while back_to_base and base_to_gold and back_to_base[-1] == base_to_gold[-1]:
+            base_to_gold.pop()
+            back_to_base.pop()
+
+        if i % 5 != 0:
+            # Only update map every 10 iterations to save time
+            for step in back_to_base:
+                move(step)
+            for step in base_to_gold[::-1]:
+                move(OPPOSITES[step])
+        else:
+            # Follow the drone path forward
+            for step in back_to_base:
+                move(step)
+                update_maze(maze, dist_to_base, path_to_base)
+            # Follow the goal path backward
+            for step in base_to_gold[::-1]:
+                move(OPPOSITES[step])
+                update_maze(maze, dist_to_base, path_to_base)
+
+    harvest()
+
+
+if __name__ == "__main__":
+    leaderboard()

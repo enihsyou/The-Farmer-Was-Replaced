@@ -58,6 +58,10 @@ def run_leaderboard_maze_single():
     leaderboard_run(Leaderboards.Maze_Single, "maze_single", 40960)
 
 
+def run_leaderboard_fastest_reset():
+    leaderboard_run(Leaderboards.Fastest_Reset, "fastest_reset", 40960)
+
+
 def simulate_leaderboard(filename, sim_items, sim_globals):
     runtimes = []
     runtimes_sum = 0
@@ -110,6 +114,11 @@ def simulate_leaderboard_maze():
     simulate_leaderboard("maze", sim_items, sim_globals)
 
 
+def simulate_leaderboard_fastest_reset():
+    sim_items = {Items.Power: 100000}
+    simulate("fastest_reset", {}, sim_items, {}, 0, 512)
+
+
 def simulate_benchmark():
     sim_items = {Items.Power: 10}
     sim_globals = {}
@@ -117,5 +126,5 @@ def simulate_benchmark():
 
 
 if __name__ == "__main__":
-    # run_leaderboard_maze()
-    run_leaderboard_maze_single()
+    # simulate_leaderboard_fastest_reset()
+    run_leaderboard_fastest_reset()
